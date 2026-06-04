@@ -169,15 +169,12 @@
     .fb-dot.orange { background: #e67e22; }
     .fb-dot.red    { background: #e74c3c; }
     @keyframes fb-blink {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 transparent; }
-      50% { opacity: 0.25; box-shadow: 0 0 6px currentColor; }
+      0%, 100% { opacity: 1; background: #27ae60; }
+      50% { opacity: 1; background: #e74c3c; }
     }
     .fb-dot.blink {
-      animation: fb-blink 0.25s ease 3;
+      animation: fb-blink 0.5s ease-in-out 3;
     }
-    .fb-dot.green.blink { color: #27ae60; }
-    .fb-dot.orange.blink { color: #e67e22; }
-    .fb-dot.red.blink { color: #e74c3c; }
     .fb-btn {
       padding: 2px 9px;
       border: 1px solid rgba(0,0,0,0.15);
@@ -1064,7 +1061,7 @@
     void dot.offsetWidth;
     dot.classList.add('blink');
     clearTimeout(indicatorTimer);
-    indicatorTimer = setTimeout(() => dot.classList.remove('blink'), 1000);
+    indicatorTimer = setTimeout(() => dot.classList.remove('blink'), 1500);
   }
 
   // ════════════════════════════════════════
