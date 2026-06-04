@@ -168,6 +168,16 @@
     .fb-dot.green  { background: #27ae60; }
     .fb-dot.orange { background: #e67e22; }
     .fb-dot.red    { background: #e74c3c; }
+    @keyframes fb-blink {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 transparent; }
+      50% { opacity: 0.25; box-shadow: 0 0 6px currentColor; }
+    }
+    .fb-dot.blink {
+      animation: fb-blink 0.25s ease 3;
+    }
+    .fb-dot.green.blink { color: #27ae60; }
+    .fb-dot.orange.blink { color: #e67e22; }
+    .fb-dot.red.blink { color: #e74c3c; }
     .fb-btn {
       padding: 2px 9px;
       border: 1px solid rgba(0,0,0,0.15);
@@ -184,11 +194,6 @@
     .fb-btn.primary { background: var(--c-accent); color: #fff; border-color: var(--c-accent); opacity: 1; }
     .fb-btn.primary:hover { background: var(--c-accent-dk); border-color: var(--c-accent-dk); }
 
-    #save-indicator {
-      font-size: 0.68rem; color: #27ae60;
-      opacity: 0; transition: opacity 0.4s; white-space: nowrap;
-    }
-    #save-indicator.show { opacity: 1; }
     #specials-bar {
       display: flex;
       flex-wrap: wrap;
@@ -391,7 +396,6 @@
       <button class="fb-btn" id="font-btn">字体</button>
     </div>
     <div id="interval-box">&nbsp;</div>
-    <div id="save-indicator">已保存</div>
     <div id="file-status"></div>
   </div>
 </div>
@@ -399,862 +403,865 @@
 <div id="calendar"></div>
 
 <script>
-// ════════════════════════════════════════
-//  常量
-// ════════════════════════════════════════
-const MONTH_NAMES   = ['1 月','2 月','3 月','4 月','5 月','6 月','7 月','8 月','9 月','10 月','11 月','12 月'];
-const DOW_CN        = ['日','一','二','三','四','五','六'];
-const CN_FONTS = [
-  { label: '幼圆',       local: 'YouYuan' },
-  { label: '楷体',       local: 'KaiTi' },
-  { label: '仿宋',       local: 'FangSong' },
-  { label: '隶书',       local: 'LiSu' },
-  { label: '宋体',       local: 'SimSun' },
-  { label: '华文中宋',   local: 'STZhongsong' },
-  { label: '黑体',       local: 'SimHei' },
-  { label: '华文细黑',   local: 'STXihei' },
-  { label: '微软雅黑',   local: 'Microsoft YaHei' },
-  { label: '雅黑 Light', local: 'Microsoft YaHei Light' },
-  { label: '思源黑体',   local: 'Source Han Sans SC' },
-];
-const EN_FONTS = [
-  { label: 'hooge 05_55',    local: 'hooge 05_55' },
-  { label: 'LCDMono2',       local: 'LCDMono2' },
-  { label: 'OCR A Extended', local: 'OCR A Extended' },
-  { label: 'Consolas',       local: 'Consolas' },
-  { label: 'Courier New',    local: 'Courier New' },
-  { label: 'Stencil',        local: 'Stencil' },
-  { label: 'Showcard Gothic',local: 'Showcard Gothic' },
-  { label: 'Old English',    local: 'Old English Text MT' },
-  { label: 'Mistral',        local: 'Mistral' },
-  { label: 'Corsiva',        local: 'Monotype Corsiva' },
-  { label: 'Chiller',        local: 'Chiller' },
-];
-let currentYear = new Date().getFullYear();
-function getDaysInMonth(y) {
-  return Array.from({length: 12}, (_, m) => new Date(y, m + 1, 0).getDate());
-}
-const FSA_OK        = 'showOpenFilePicker' in window;
+  // ════════════════════════════════════════
+  //  常量
+  // ════════════════════════════════════════
+  const MONTH_NAMES   = ['1 月','2 月','3 月','4 月','5 月','6 月','7 月','8 月','9 月','10 月','11 月','12 月'];
+  const DOW_CN        = ['日','一','二','三','四','五','六'];
+  const CN_FONTS = [
+    { label: '幼圆',       local: 'YouYuan' },
+    { label: '楷体',       local: 'KaiTi' },
+    { label: '仿宋',       local: 'FangSong' },
+    { label: '隶书',       local: 'LiSu' },
+    { label: '宋体',       local: 'SimSun' },
+    { label: '华文中宋',   local: 'STZhongsong' },
+    { label: '黑体',       local: 'SimHei' },
+    { label: '华文细黑',   local: 'STXihei' },
+    { label: '微软雅黑',   local: 'Microsoft YaHei' },
+    { label: '雅黑 Light', local: 'Microsoft YaHei Light' },
+    { label: '思源黑体',   local: 'Source Han Sans SC' },
+  ];
+  const EN_FONTS = [
+    { label: 'hooge 05_55',    local: 'hooge 05_55' },
+    { label: 'LCDMono2',       local: 'LCDMono2' },
+    { label: 'OCR A Extended', local: 'OCR A Extended' },
+    { label: 'Consolas',       local: 'Consolas' },
+    { label: 'Courier New',    local: 'Courier New' },
+    { label: 'Stencil',        local: 'Stencil' },
+    { label: 'Showcard Gothic',local: 'Showcard Gothic' },
+    { label: 'Old English',    local: 'Old English Text MT' },
+    { label: 'Mistral',        local: 'Mistral' },
+    { label: 'Corsiva',        local: 'Monotype Corsiva' },
+    { label: 'Chiller',        local: 'Chiller' },
+  ];
+  let currentYear = new Date().getFullYear();
+  function getDaysInMonth(y) {
+    return Array.from({length: 12}, (_, m) => new Date(y, m + 1, 0).getDate());
+  }
+  const FSA_OK        = 'showOpenFilePicker' in window;
 
-// ════════════════════════════════════════
-//  状态
-// ════════════════════════════════════════
-let notes      = {};
-let specials   = [];
-let sel        = [];
-let fileHandle = null;
-let saveTimer  = null, indicatorTimer = null;
-let spCollapsed = (localStorage.getItem('sp-collapsed') ?? 'true') === 'true';
+  // ════════════════════════════════════════
+  //  状态
+  // ════════════════════════════════════════
+  let notes      = {};
+  let specials   = [];
+  let sel        = [];
+  let fileHandle = null;
+  let saveTimer  = null, indicatorTimer = null;
+  let spCollapsed = (localStorage.getItem('sp-collapsed') ?? 'true') === 'true';
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ════════════════════════════════════════
-//  IndexedDB — 持久化文件句柄
-// ════════════════════════════════════════
-function openIDB() {
-  return new Promise((res, rej) => {
-    const req = indexedDB.open('cal-fsa', 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore('kv');
-    req.onsuccess = e => res(e.target.result);
-    req.onerror   = () => rej(req.error);
-  });
-}
-async function idbSet(key, val) {
-  const db = await openIDB();
-  return new Promise((res, rej) => {
-    const tx = db.transaction('kv','readwrite');
-    tx.objectStore('kv').put(val, key);
-    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
-  });
-}
-async function idbGet(key) {
-  const db = await openIDB();
-  return new Promise((res, rej) => {
-    const tx  = db.transaction('kv','readonly');
-    const req = tx.objectStore('kv').get(key);
-    req.onsuccess = () => res(req.result);
-    req.onerror   = () => rej(req.error);
-  });
-}
-
-// ════════════════════════════════════════
-//  文件操作
-// ════════════════════════════════════════
-const FILE_TYPES = [{ description: 'JSON 数据文件', accept: { 'application/json': ['.json'] } }];
-
-async function connectHandle(handle, storeToIDB = true) {
-  fileHandle = handle;
-  if (storeToIDB) await idbSet('handle', handle);
-
-  // 读取文件内容
-  const file = await handle.getFile();
-  const text = (await file.text()).trim();
-  try {
-    const data = text ? JSON.parse(text) : {};
-    notes    = data.notes    || {};
-    specials = data.specials || [];
-    if (data.theme) {
-      document.documentElement.setAttribute('data-theme', data.theme);
-      localStorage.setItem('cal-theme', data.theme);
-      document.querySelectorAll('.t-dot').forEach(b => b.classList.toggle('active', b.dataset.theme === data.theme));
-    }
-    if (data.fontCN) localStorage.setItem('cal-font-cn', data.fontCN);
-    if (data.fontEN) localStorage.setItem('cal-font-en', data.fontEN);
-    applyFontStyle();
-    // 同步字体选择器高亮
-    const fpPanel = document.getElementById('font-picker-panel');
-    if (fpPanel && (data.fontCN || data.fontEN)) {
-      const cnLabel = localStorage.getItem('cal-font-cn');
-      const enLabel = localStorage.getItem('cal-font-en');
-      fpPanel.querySelectorAll('.fp-row').forEach(row => {
-        const isCN = row.querySelector('.fp-label')?.textContent === '中文';
-        const target = isCN ? cnLabel : enLabel;
-        row.querySelectorAll('.fp-opt').forEach(opt => opt.classList.toggle('active', opt.textContent === target));
-      });
-    }
-  } catch(e) {
-    notes = {}; specials = [];
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  render();
-  renderSpecials();
-  updateFileBar();
-  scrollToToday();
-}
-
-async function flushToFile() {
-  if (!fileHandle) return;
-  const writable = await fileHandle.createWritable();
-  const theme  = document.documentElement.getAttribute('data-theme') || 'ocean';
-  const fontCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
-  const fontEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
-  await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN }, null, 2));
-  await writable.close();
-}
-
-async function pickExistingFile() {
-  try {
-    const [h] = await window.showOpenFilePicker({ types: FILE_TYPES, multiple: false });
-    await connectHandle(h);
-  } catch(e) { /* 用户取消 */ }
-}
-
-async function createNewFile() {
-  try {
-    const h = await window.showSaveFilePicker({
-      suggestedName: 'calendar-data.json',
-      types: FILE_TYPES
+  // ════════════════════════════════════════
+  //  IndexedDB — 持久化文件句柄
+  // ════════════════════════════════════════
+  function openIDB() {
+    return new Promise((res, rej) => {
+      const req = indexedDB.open('cal-fsa', 1);
+      req.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+      req.onsuccess = e => res(e.target.result);
+      req.onerror   = () => rej(req.error);
     });
-    // 写入初始内容
-    const w = await h.createWritable();
-    await w.write(JSON.stringify({ notes: {}, specials: [] }, null, 2));
-    await w.close();
-    await connectHandle(h);
-  } catch(e) { /* 用户取消 */ }
-}
-
-async function reconnect(handle) {
-  try {
-    const perm = await handle.requestPermission({ mode: 'readwrite' });
-    if (perm === 'granted') await connectHandle(handle, false);
-    else updateFileBar();
-  } catch(e) { updateFileBar(); }
-}
-
-// ════════════════════════════════════════
-//  文件状态栏
-// ════════════════════════════════════════
-function updateFileBar() {
-  const bar = document.getElementById('file-status');
-  bar.innerHTML = '';
-
-  if (!FSA_OK) {
-    bar.append(
-      mkEl('span','fb-dot red'),
-      mkEl('span','',{ id:'fb-status', textContent:'浏览器不支持，已降级为 localStorage' })
-    );
-    return;
+  }
+  async function idbSet(key, val) {
+    const db = await openIDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction('kv','readwrite');
+      tx.objectStore('kv').put(val, key);
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+  }
+  async function idbGet(key) {
+    const db = await openIDB();
+    return new Promise((res, rej) => {
+      const tx  = db.transaction('kv','readonly');
+      const req = tx.objectStore('kv').get(key);
+      req.onsuccess = () => res(req.result);
+      req.onerror   = () => rej(req.error);
+    });
   }
 
-  if (!fileHandle) {
-    bar.append(
-      mkEl('span','fb-dot orange'),
-      mkEl('span','',{ id:'fb-status', textContent:'未连接文件' }),
-      mkBtn('打开', pickExistingFile),
-      mkBtn('新建', createNewFile, true)
-    );
-    return;
+  // ════════════════════════════════════════
+  //  文件操作
+  // ════════════════════════════════════════
+  const FILE_TYPES = [{ description: 'JSON 数据文件', accept: { 'application/json': ['.json'] } }];
+
+  async function connectHandle(handle, storeToIDB = true) {
+    fileHandle = handle;
+    if (storeToIDB) await idbSet('handle', handle);
+
+    // 读取文件内容
+    const file = await handle.getFile();
+    const text = (await file.text()).trim();
+    try {
+      const data = text ? JSON.parse(text) : {};
+      notes    = data.notes    || {};
+      specials = data.specials || [];
+      if (data.theme) {
+        document.documentElement.setAttribute('data-theme', data.theme);
+        localStorage.setItem('cal-theme', data.theme);
+        document.querySelectorAll('.t-dot').forEach(b => b.classList.toggle('active', b.dataset.theme === data.theme));
+      }
+      if (data.fontCN) localStorage.setItem('cal-font-cn', data.fontCN);
+      if (data.fontEN) localStorage.setItem('cal-font-en', data.fontEN);
+      applyFontStyle();
+      // 同步字体选择器高亮
+      const fpPanel = document.getElementById('font-picker-panel');
+      if (fpPanel && (data.fontCN || data.fontEN)) {
+        const cnLabel = localStorage.getItem('cal-font-cn');
+        const enLabel = localStorage.getItem('cal-font-en');
+        fpPanel.querySelectorAll('.fp-row').forEach(row => {
+          const isCN = row.querySelector('.fp-label')?.textContent === '中文';
+          const target = isCN ? cnLabel : enLabel;
+          row.querySelectorAll('.fp-opt').forEach(opt => opt.classList.toggle('active', opt.textContent === target));
+        });
+      }
+    } catch(e) {
+      notes = {}; specials = [];
+    }
+
+    render();
+    renderSpecials();
+    updateFileBar();
+    scrollToToday();
   }
 
-  // 已连接
-  bar.append(
-    mkEl('span','fb-dot green'),
-    mkEl('span','', { id:'fb-filename', textContent: fileHandle.name }),
-    mkBtn('更换', pickExistingFile)
-  );
-}
-
-function mkEl(tag, cls, props = {}) {
-  const el = document.createElement(tag);
-  if (cls) el.className = cls;
-  Object.assign(el, props);
-  return el;
-}
-function mkBtn(text, onClick, primary = false) {
-  const btn = document.createElement('button');
-  btn.className = 'fb-btn' + (primary ? ' primary' : '');
-  btn.textContent = text;
-  btn.addEventListener('click', e => { e.stopPropagation(); onClick(); });
-  return btn;
-}
-
-// ════════════════════════════════════════
-//  初始化
-// ════════════════════════════════════════
-async function init() {
-  // 初始化年份导航
-  document.getElementById('yr-label').textContent = currentYear;
-  document.getElementById('cal-title').textContent = '日历记事本';
-  document.title = `${currentYear} 日历记事本`;
-  document.getElementById('yr-prev').addEventListener('click', e => {
-    e.stopPropagation(); setYear(currentYear - 1); window.scrollTo(0, 0);
-  });
-  document.getElementById('yr-next').addEventListener('click', e => {
-    e.stopPropagation(); setYear(currentYear + 1); window.scrollTo(0, 0);
-  });
-
-  updateFileBar();
-  render(); renderSpecials();
-  initThemePicker();
-  initFontPicker();
-  if (!FSA_OK) {
-    notes    = lsGet('cal_notes',    {});
-    specials = lsGet('cal_specials', []);
-    render(); renderSpecials();
-    scrollToToday(); // localStorage：数据就绪后只滚一次
-    return;
+  async function flushToFile() {
+    if (!fileHandle) return;
+    const writable = await fileHandle.createWritable();
+    const theme  = document.documentElement.getAttribute('data-theme') || 'ocean';
+    const fontCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
+    const fontEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
+    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN }, null, 2));
+    await writable.close();
   }
 
-  // 尝试从 IDB 恢复句柄
-  try {
-    const h = await idbGet('handle');
-    if (!h) return;
-    const perm = await h.queryPermission({ mode: 'readwrite' });
-    if (perm === 'granted') {
-      await connectHandle(h, false);
-    } else {
-      // 需要用户点击重新授权
-      fileHandle = h;
-      const bar = document.getElementById('file-status');
-      bar.innerHTML = '';
+  async function pickExistingFile() {
+    try {
+      const [h] = await window.showOpenFilePicker({ types: FILE_TYPES, multiple: false });
+      await connectHandle(h);
+    } catch(e) { /* 用户取消 */ }
+  }
+
+  async function createNewFile() {
+    try {
+      const h = await window.showSaveFilePicker({
+        suggestedName: 'calendar-data.json',
+        types: FILE_TYPES
+      });
+      // 写入初始内容
+      const w = await h.createWritable();
+      await w.write(JSON.stringify({ notes: {}, specials: [] }, null, 2));
+      await w.close();
+      await connectHandle(h);
+    } catch(e) { /* 用户取消 */ }
+  }
+
+  async function reconnect(handle) {
+    try {
+      const perm = await handle.requestPermission({ mode: 'readwrite' });
+      if (perm === 'granted') await connectHandle(handle, false);
+      else updateFileBar();
+    } catch(e) { updateFileBar(); }
+  }
+
+  // ════════════════════════════════════════
+  //  文件状态栏
+  // ════════════════════════════════════════
+  function updateFileBar() {
+    const bar = document.getElementById('file-status');
+    bar.innerHTML = '';
+
+    if (!FSA_OK) {
+      bar.append(
+        mkEl('span','fb-dot red'),
+        mkEl('span','',{ id:'fb-status', textContent:'浏览器不支持，已降级为 localStorage' })
+      );
+      return;
+    }
+
+    if (!fileHandle) {
       bar.append(
         mkEl('span','fb-dot orange'),
-        mkEl('span','', { id:'fb-filename', textContent: h.name }),
-        mkEl('span','', { id:'fb-status',   textContent:'需重新授权' }),
-        mkBtn('点击授权', () => reconnect(h), true)
+        mkEl('span','',{ id:'fb-status', textContent:'未连接文件' }),
+        mkBtn('打开', pickExistingFile),
+        mkBtn('新建', createNewFile, true)
       );
-      fileHandle = null;
+      return;
     }
-  } catch(e) { /* IDB 读取失败，忽略 */ }
-}
 
-// localStorage 降级
-function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e) { return d; } }
-function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+    // 已连接
+    bar.append(
+      mkEl('span','fb-dot green'),
+      mkEl('span','', { id:'fb-filename', textContent: fileHandle.name }),
+      mkBtn('更换', pickExistingFile)
+    );
+  }
 
-// ════════════════════════════════════════
-//  特殊日期
-// ════════════════════════════════════════
-function renderSpecials() {
-  const bar   = document.getElementById('specials-bar');
-  bar.innerHTML = '';
-  const today = new Date(); today.setHours(0,0,0,0);
+  function mkEl(tag, cls, props = {}) {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    Object.assign(el, props);
+    return el;
+  }
+  function mkBtn(text, onClick, primary = false) {
+    const btn = document.createElement('button');
+    btn.className = 'fb-btn' + (primary ? ' primary' : '');
+    btn.textContent = text;
+    btn.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+    return btn;
+  }
 
-  // 今日卡片
-  const now = new Date();
-  const todayCard = document.createElement('div');
-  todayCard.className = 'sp-card sp-today-card';
-  todayCard.title = '点击返回今日';
-  todayCard.style.cursor = 'pointer';
-  todayCard.addEventListener('click', e => {
-    e.stopPropagation();
-    const realYear = now.getFullYear();
-    if (realYear !== currentYear) {
-      setYear(realYear);
-    } else {
-      const k = dateKey(now.getMonth(), now.getDate());
-      sel = [k]; refreshSel(); scrollToToday();
-    }
-  });
-  todayCard.innerHTML =
-    `<div class="sp-today-label">今日</div>` +
-    `<div class="sp-today-dow">${now.getMonth()+1}月${now.getDate()}日 周${DOW_CN[now.getDay()]}</div>` +
-    `<div class="sp-today-lunar">${getDayLabel(now)}</div>`;
-  bar.appendChild(todayCard);
-
-  const sorted = [...specials].sort((a, b) => {
-    const da = new Date(a.date) - today, db = new Date(b.date) - today;
-    if (da >= 0 && db >= 0) return da - db;
-    if (da < 0  && db < 0)  return db - da;
-    return da >= 0 ? -1 : 1;
-  });
-
-  for (const s of sorted) {
-    const d = new Date(s.date); d.setHours(0,0,0,0);
-    const diff = Math.round((d - today) / 86400000);
-    let cntText, cntClass;
-    if      (diff === 0)          { cntText = '就是今天！'; cntClass = 'sp-cnt-today'; }
-    else if (diff > 0 && diff<=7) { cntText = `<span class="sp-label">还有</span><span class="sp-n">${diff}</span><span class="sp-label">天</span>`;  cntClass = 'sp-cnt-soon';   }
-    else if (diff > 7)            { cntText = `<span class="sp-label">还有</span><span class="sp-n">${diff}</span><span class="sp-label">天</span>`;  cntClass = 'sp-cnt-future'; }
-    else                          { cntText = `<span class="sp-label">已过</span><span class="sp-n">${-diff}</span><span class="sp-label">天</span>`; cntClass = 'sp-cnt-past';   }
-
-    const card = document.createElement('div');
-    card.className = 'sp-card';
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', e => {
-      e.stopPropagation();
-      const dateYear = parseInt(s.date.slice(0, 4));
-      if (dateYear !== currentYear) setYear(dateYear);
-      sel = [s.date]; refreshSel();
-      scrollToDate(s.date);
+  // ════════════════════════════════════════
+  //  初始化
+  // ════════════════════════════════════════
+  async function init() {
+    // 初始化年份导航
+    document.getElementById('yr-label').textContent = currentYear;
+    document.getElementById('cal-title').textContent = '日历记事本';
+    document.title = `${currentYear} 日历记事本`;
+    document.getElementById('yr-prev').addEventListener('click', e => {
+      e.stopPropagation(); setYear(currentYear - 1); window.scrollTo(0, 0);
     });
-    card.addEventListener('contextmenu', e => { e.preventDefault(); showEditForm(card, s); });
-    card.innerHTML =
-      `<div class="sp-name">${escHtml(s.name)}</div>` +
-      `<div class="sp-date">${s.date}</div>` +
-      `<span class="sp-cnt ${cntClass}">${cntText}</span>` +
-      `<button class="sp-del" title="删除">×</button>`;
-    card.querySelector('.sp-del').addEventListener('click', e => {
+    document.getElementById('yr-next').addEventListener('click', e => {
+      e.stopPropagation(); setYear(currentYear + 1); window.scrollTo(0, 0);
+    });
+
+    updateFileBar();
+    render(); renderSpecials();
+    initThemePicker();
+    initFontPicker();
+    if (!FSA_OK) {
+      notes    = lsGet('cal_notes',    {});
+      specials = lsGet('cal_specials', []);
+      render(); renderSpecials();
+      scrollToToday(); // localStorage：数据就绪后只滚一次
+      return;
+    }
+
+    // 尝试从 IDB 恢复句柄
+    try {
+      const h = await idbGet('handle');
+      if (!h) return;
+      const perm = await h.queryPermission({ mode: 'readwrite' });
+      if (perm === 'granted') {
+        await connectHandle(h, false);
+      } else {
+        // 需要用户点击重新授权
+        fileHandle = h;
+        const bar = document.getElementById('file-status');
+        bar.innerHTML = '';
+        bar.append(
+          mkEl('span','fb-dot orange'),
+          mkEl('span','', { id:'fb-filename', textContent: h.name }),
+          mkEl('span','', { id:'fb-status',   textContent:'需重新授权' }),
+          mkBtn('点击授权', () => reconnect(h), true)
+        );
+        fileHandle = null;
+      }
+    } catch(e) { /* IDB 读取失败，忽略 */ }
+  }
+
+  // localStorage 降级
+  function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e) { return d; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+
+  // ════════════════════════════════════════
+  //  特殊日期
+  // ════════════════════════════════════════
+  function renderSpecials() {
+    const bar   = document.getElementById('specials-bar');
+    bar.innerHTML = '';
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    // 今日卡片
+    const now = new Date();
+    const todayCard = document.createElement('div');
+    todayCard.className = 'sp-card sp-today-card';
+    todayCard.title = '点击返回今日';
+    todayCard.style.cursor = 'pointer';
+    todayCard.addEventListener('click', e => {
       e.stopPropagation();
-      specials = specials.filter(x => x.id !== s.id);
+      const realYear = now.getFullYear();
+      if (realYear !== currentYear) {
+        setYear(realYear);
+      } else {
+        const k = dateKey(now.getMonth(), now.getDate());
+        sel = [k]; refreshSel(); scrollToToday();
+      }
+    });
+    todayCard.innerHTML =
+      `<div class="sp-today-label">今日</div>` +
+      `<div class="sp-today-dow">${now.getMonth()+1}月${now.getDate()}日 周${DOW_CN[now.getDay()]}</div>` +
+      `<div class="sp-today-lunar">${getDayLabel(now)}</div>`;
+    bar.appendChild(todayCard);
+
+    const sorted = [...specials].sort((a, b) => {
+      const da = new Date(a.date) - today, db = new Date(b.date) - today;
+      if (da >= 0 && db >= 0) return da - db;
+      if (da < 0  && db < 0)  return db - da;
+      return da >= 0 ? -1 : 1;
+    });
+
+    for (const s of sorted) {
+      const d = new Date(s.date); d.setHours(0,0,0,0);
+      const diff = Math.round((d - today) / 86400000);
+      let cntText, cntClass;
+      if      (diff === 0)          { cntText = '就是今天！'; cntClass = 'sp-cnt-today'; }
+      else if (diff > 0 && diff<=7) { cntText = `<span class="sp-label">还有</span><span class="sp-n">${diff}</span><span class="sp-label">天</span>`;  cntClass = 'sp-cnt-soon';   }
+      else if (diff > 7)            { cntText = `<span class="sp-label">还有</span><span class="sp-n">${diff}</span><span class="sp-label">天</span>`;  cntClass = 'sp-cnt-future'; }
+      else                          { cntText = `<span class="sp-label">已过</span><span class="sp-n">${-diff}</span><span class="sp-label">天</span>`; cntClass = 'sp-cnt-past';   }
+
+      const card = document.createElement('div');
+      card.className = 'sp-card';
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', e => {
+        e.stopPropagation();
+        const dateYear = parseInt(s.date.slice(0, 4));
+        if (dateYear !== currentYear) setYear(dateYear);
+        sel = [s.date]; refreshSel();
+        scrollToDate(s.date);
+      });
+      card.addEventListener('contextmenu', e => { e.preventDefault(); showEditForm(card, s); });
+      card.innerHTML =
+        `<div class="sp-name">${escHtml(s.name)}</div>` +
+        `<div class="sp-date">${s.date}</div>` +
+        `<span class="sp-cnt ${cntClass}">${cntText}</span>` +
+        `<button class="sp-del" title="删除">×</button>`;
+      card.querySelector('.sp-del').addEventListener('click', e => {
+        e.stopPropagation();
+        specials = specials.filter(x => x.id !== s.id);
+        persistAll();
+        renderSpecials();
+      });
+      bar.appendChild(card);
+    }
+
+    const addBtn = document.createElement('div');
+    addBtn.className = 'sp-add-card';
+    addBtn.innerHTML = '<div class="sp-add-icon">+</div><div class="sp-add-label">添加特殊日期</div>';
+    addBtn.addEventListener('click', e => { e.stopPropagation(); showAddForm(addBtn); });
+    bar.appendChild(addBtn);
+    requestAnimationFrame(applySpCollapse);
+    const wrap = document.getElementById('specials-wrap');
+    const updateSpecialsHeight = () =>
+      document.documentElement.style.setProperty('--specials-height', wrap.offsetHeight + 'px');
+    updateSpecialsHeight();
+    if (window._specialsRO) window._specialsRO.disconnect();
+    window._specialsRO = new ResizeObserver(updateSpecialsHeight);
+    window._specialsRO.observe(wrap);
+  }
+
+  function applySpCollapse() {
+    const bar  = document.getElementById('specials-bar');
+    const wrap = document.getElementById('specials-wrap');
+    if (!bar || !wrap) return;
+
+    bar.querySelectorAll('.sp-toggle-btn').forEach(el => el.remove());
+    bar.style.maxHeight = '';
+
+    const fullH = bar.scrollHeight;
+    const firstCard = bar.querySelector('.sp-card, .sp-today-card');
+    if (!firstCard) return;
+    const twoRowH = 7 + firstCard.offsetHeight * 2 + 7 + 6;
+
+    if (fullH <= twoRowH + 4) return;
+
+    const todayCard = bar.querySelector('.sp-today-card');
+    if (!todayCard) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'sp-toggle-btn';
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      spCollapsed = !spCollapsed;
+      localStorage.setItem('sp-collapsed', spCollapsed);
+      applySpCollapse();
+      requestAnimationFrame(() =>
+        document.documentElement.style.setProperty('--specials-height', wrap.offsetHeight + 'px')
+      );
+    });
+    todayCard.appendChild(btn);
+
+    if (spCollapsed) {
+      bar.style.maxHeight = twoRowH + 'px';
+      btn.textContent = '▾';
+    } else {
+      bar.style.maxHeight = fullH + 'px';
+      btn.textContent = '▴';
+    }
+  }
+
+  function showAddForm(addBtn, preDate = '') {
+    const form = document.createElement('div');
+    form.className = 'sp-form-card';
+    form.addEventListener('click', e => e.stopPropagation());
+
+    const nameInp = document.createElement('input');
+    nameInp.type = 'text'; nameInp.className = 'sp-finp';
+    nameInp.placeholder = '名称（如：生日）'; nameInp.maxLength = 20;
+
+    const dateInp = document.createElement('input');
+    dateInp.type = 'date'; dateInp.className = 'sp-finp';
+    if (preDate) dateInp.value = preDate;
+
+    const btnRow = document.createElement('div'); btnRow.className = 'sp-fbtn-row';
+    const okBtn  = document.createElement('button'); okBtn.className = 'sp-ok'; okBtn.textContent = '确定';
+    okBtn.addEventListener('click', () => {
+      const name = nameInp.value.trim(), date = dateInp.value;
+      if (!name || !date) { nameInp.focus(); return; }
+      specials.push({ id: Date.now().toString(), name, date });
       persistAll();
       renderSpecials();
     });
-    bar.appendChild(card);
+    const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
+    cancelBtn.addEventListener('click', () => renderSpecials());
+
+    btnRow.append(okBtn, cancelBtn);
+    const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
+    inpCol.append(nameInp, dateInp);
+    form.append(inpCol, btnRow);
+    addBtn.replaceWith(form);
+    nameInp.focus();
   }
 
-  const addBtn = document.createElement('div');
-  addBtn.className = 'sp-add-card';
-  addBtn.innerHTML = '<div class="sp-add-icon">+</div><div class="sp-add-label">添加特殊日期</div>';
-  addBtn.addEventListener('click', e => { e.stopPropagation(); showAddForm(addBtn); });
-  bar.appendChild(addBtn);
-  requestAnimationFrame(applySpCollapse);
-  const wrap = document.getElementById('specials-wrap');
-  const updateSpecialsHeight = () =>
-    document.documentElement.style.setProperty('--specials-height', wrap.offsetHeight + 'px');
-  updateSpecialsHeight();
-  if (window._specialsRO) window._specialsRO.disconnect();
-  window._specialsRO = new ResizeObserver(updateSpecialsHeight);
-  window._specialsRO.observe(wrap);
-}
+  function showAddFormPopup(e, preDate) {
+    const old = document.querySelector('.sp-popup-overlay');
+    if (old) old.remove();
 
-function applySpCollapse() {
-  const bar  = document.getElementById('specials-bar');
-  const wrap = document.getElementById('specials-wrap');
-  if (!bar || !wrap) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'sp-popup-overlay';
+    const form = document.createElement('div');
+    form.className = 'sp-popup-form';
+    form.addEventListener('click', e2 => e2.stopPropagation());
 
-  bar.querySelectorAll('.sp-toggle-btn').forEach(el => el.remove());
-  bar.style.maxHeight = '';
+    const nameInp = document.createElement('input');
+    nameInp.type = 'text'; nameInp.className = 'sp-finp';
+    nameInp.placeholder = '名称（如：生日）'; nameInp.maxLength = 20;
 
-  const fullH = bar.scrollHeight;
-  const firstCard = bar.querySelector('.sp-card, .sp-today-card');
-  if (!firstCard) return;
-  const twoRowH = 7 + firstCard.offsetHeight * 2 + 7 + 6;
+    const dateInp = document.createElement('input');
+    dateInp.type = 'date'; dateInp.className = 'sp-finp';
+    if (preDate) dateInp.value = preDate;
 
-  if (fullH <= twoRowH + 4) return;
+    const btnRow = document.createElement('div'); btnRow.className = 'sp-fbtn-row';
+    const okBtn  = document.createElement('button'); okBtn.className = 'sp-ok'; okBtn.textContent = '确定';
+    okBtn.addEventListener('click', () => {
+      const name = nameInp.value.trim(), date = dateInp.value;
+      if (!name || !date) { nameInp.focus(); return; }
+      specials.push({ id: Date.now().toString(), name, date });
+      persistAll();
+      renderSpecials();
+      wrap.remove();
+    });
+    const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
+    cancelBtn.addEventListener('click', () => wrap.remove());
 
-  const todayCard = bar.querySelector('.sp-today-card');
-  if (!todayCard) return;
+    btnRow.append(okBtn, cancelBtn);
+    const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
+    inpCol.append(nameInp, dateInp);
+    form.append(inpCol, btnRow);
+    wrap.appendChild(form);
+    document.body.appendChild(wrap);
 
-  const btn = document.createElement('button');
-  btn.className = 'sp-toggle-btn';
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    spCollapsed = !spCollapsed;
-    localStorage.setItem('sp-collapsed', spCollapsed);
-    applySpCollapse();
-    requestAnimationFrame(() =>
-      document.documentElement.style.setProperty('--specials-height', wrap.offsetHeight + 'px')
-    );
-  });
-  todayCard.appendChild(btn);
+    const pw = 220, ph = 100;
+    let x = e.clientX, y = e.clientY;
+    if (x + pw > window.innerWidth)  x = window.innerWidth  - pw - 12;
+    if (y + ph > window.innerHeight) y = window.innerHeight - ph - 12;
+    form.style.left = x + 'px';
+    form.style.top  = y + 'px';
 
-  if (spCollapsed) {
-    bar.style.maxHeight = twoRowH + 'px';
-    btn.textContent = '▾';
-  } else {
-    bar.style.maxHeight = fullH + 'px';
-    btn.textContent = '▴';
+    nameInp.focus();
+
+    const closeHandler = ev => { if (ev.key === 'Escape') { wrap.remove(); document.removeEventListener('keydown', closeHandler); } };
+    document.addEventListener('keydown', closeHandler);
+    wrap.addEventListener('click', ev => { if (ev.target === wrap) wrap.remove(); });
   }
-}
 
-function showAddForm(addBtn, preDate = '') {
-  const form = document.createElement('div');
-  form.className = 'sp-form-card';
-  form.addEventListener('click', e => e.stopPropagation());
+  function showEditForm(card, s) {
+    const form = document.createElement('div');
+    form.className = 'sp-form-card';
+    form.addEventListener('click', e => e.stopPropagation());
 
-  const nameInp = document.createElement('input');
-  nameInp.type = 'text'; nameInp.className = 'sp-finp';
-  nameInp.placeholder = '名称（如：生日）'; nameInp.maxLength = 20;
+    const nameInp = document.createElement('input');
+    nameInp.type = 'text'; nameInp.className = 'sp-finp';
+    nameInp.value = s.name; nameInp.maxLength = 20;
 
-  const dateInp = document.createElement('input');
-  dateInp.type = 'date'; dateInp.className = 'sp-finp';
-  if (preDate) dateInp.value = preDate;
+    const dateInp = document.createElement('input');
+    dateInp.type = 'date'; dateInp.className = 'sp-finp';
+    dateInp.value = s.date;
 
-  const btnRow = document.createElement('div'); btnRow.className = 'sp-fbtn-row';
-  const okBtn  = document.createElement('button'); okBtn.className = 'sp-ok'; okBtn.textContent = '确定';
-  okBtn.addEventListener('click', () => {
-    const name = nameInp.value.trim(), date = dateInp.value;
-    if (!name || !date) { nameInp.focus(); return; }
-    specials.push({ id: Date.now().toString(), name, date });
-    persistAll();
-    renderSpecials();
-  });
-  const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
-  cancelBtn.addEventListener('click', () => renderSpecials());
+    const btnRow = document.createElement('div'); btnRow.className = 'sp-fbtn-row';
+    const okBtn  = document.createElement('button'); okBtn.className = 'sp-ok'; okBtn.textContent = '确定';
+    okBtn.addEventListener('click', () => {
+      const name = nameInp.value.trim(), date = dateInp.value;
+      if (!name || !date) { nameInp.focus(); return; }
+      const idx = specials.findIndex(x => x.id === s.id);
+      if (idx !== -1) specials[idx] = { ...specials[idx], name, date };
+      persistAll();
+      renderSpecials();
+    });
+    const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
+    cancelBtn.addEventListener('click', () => renderSpecials());
 
-  btnRow.append(okBtn, cancelBtn);
-  const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
-  inpCol.append(nameInp, dateInp);
-  form.append(inpCol, btnRow);
-  addBtn.replaceWith(form);
-  nameInp.focus();
-}
+    btnRow.append(okBtn, cancelBtn);
+    const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
+    inpCol.append(nameInp, dateInp);
+    form.append(inpCol, btnRow);
+    card.replaceWith(form);
+    nameInp.focus(); nameInp.select();
+  }
 
-function showAddFormPopup(e, preDate) {
-  const old = document.querySelector('.sp-popup-overlay');
-  if (old) old.remove();
+  // ════════════════════════════════════════
+  //  日历渲染
+  // ════════════════════════════════════════
+  // ── 节日表 ──
+  const LUNAR_HOLIDAYS = {
+    '正月初一':'春节', '正月十五':'元宵节',
+    '五月初五':'端午节', '七月初七':'七夕节',
+    '八月十五':'中秋节', '九月初九':'重阳节',
+    '腊月二十九':'除夕', '腊月三十':'除夕',
+  };
+  const SOLAR_HOLIDAYS = {
+    '01-01':'元旦', '05-01':'劳动节',
+    '06-01':'儿童节', '10-01':'国庆节',
+  };
+  function getDayLabel(jsDate) {
+    const mm = String(jsDate.getMonth()+1).padStart(2,'0');
+    const dd = String(jsDate.getDate()).padStart(2,'0');
+    if (SOLAR_HOLIDAYS[`${mm}-${dd}`]) return SOLAR_HOLIDAYS[`${mm}-${dd}`];
+    const lunar = getLunar(jsDate);
+    return LUNAR_HOLIDAYS[lunar] || lunar;
+  }
 
-  const wrap = document.createElement('div');
-  wrap.className = 'sp-popup-overlay';
-  const form = document.createElement('div');
-  form.className = 'sp-popup-form';
-  form.addEventListener('click', e2 => e2.stopPropagation());
+  // ── 农历（浏览器内置 Intl API） ──
+  const LUNAR_DAY = ['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+    '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+    '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+  const lunarFmt = (() => {
+    try { return new Intl.DateTimeFormat('zh-u-ca-chinese', { month: 'long', day: 'numeric' }); }
+    catch(e) { return null; }
+  })();
+  function getLunar(jsDate) {
+    if (!lunarFmt) return '';
+    try {
+      const parts = lunarFmt.formatToParts(jsDate);
+      const month = parts.find(p => p.type === 'month')?.value || '';
+      const day   = parseInt(parts.find(p => p.type === 'day')?.value) || 0;
+      return month + (LUNAR_DAY[day] || '');
+    } catch(e) { return ''; }
+  }
 
-  const nameInp = document.createElement('input');
-  nameInp.type = 'text'; nameInp.className = 'sp-finp';
-  nameInp.placeholder = '名称（如：生日）'; nameInp.maxLength = 20;
+  function dateKey(m, d) {
+    return `${currentYear}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
 
-  const dateInp = document.createElement('input');
-  dateInp.type = 'date'; dateInp.className = 'sp-finp';
-  if (preDate) dateInp.value = preDate;
+  function render() {
+    const cal = document.getElementById('calendar');
+    cal.innerHTML = '';
+    const now      = new Date();
+    const todayKey = now.getFullYear() === currentYear ? dateKey(now.getMonth(), now.getDate()) : '';
+    const daysInMonth = getDaysInMonth(currentYear);
 
-  const btnRow = document.createElement('div'); btnRow.className = 'sp-fbtn-row';
-  const okBtn  = document.createElement('button'); okBtn.className = 'sp-ok'; okBtn.textContent = '确定';
-  okBtn.addEventListener('click', () => {
-    const name = nameInp.value.trim(), date = dateInp.value;
-    if (!name || !date) { nameInp.focus(); return; }
-    specials.push({ id: Date.now().toString(), name, date });
-    persistAll();
-    renderSpecials();
-    wrap.remove();
-  });
-  const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
-  cancelBtn.addEventListener('click', () => wrap.remove());
+    for (let m = 0; m < 12; m++) {
+      const card  = document.createElement('div'); card.className = 'm-card';
+      const title = document.createElement('div'); title.className = 'm-title';
+      title.textContent = MONTH_NAMES[m];
+      if (now.getFullYear() === currentYear && now.getMonth() === m) title.classList.add('m-cur');
+      card.appendChild(title);
 
-  btnRow.append(okBtn, cancelBtn);
-  const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
-  inpCol.append(nameInp, dateInp);
-  form.append(inpCol, btnRow);
-  wrap.appendChild(form);
-  document.body.appendChild(wrap);
+      for (let d = 1; d <= daysInMonth[m]; d++) {
+        const dow = new Date(currentYear, m, d).getDay();
+        const k   = dateKey(m, d);
+        const row = document.createElement('div');
+        row.className = 'd-row' +
+          (dow===6 ? ' sat' : dow===0 ? ' sun' : '') +
+          (k===todayKey ? ' today' : '') +
+          (sel.includes(k) ? ' sel' : '');
+        row.dataset.k = k;
 
-  const pw = 220, ph = 100;
-  let x = e.clientX, y = e.clientY;
-  if (x + pw > window.innerWidth)  x = window.innerWidth  - pw - 12;
-  if (y + ph > window.innerHeight) y = window.innerHeight - ph - 12;
-  form.style.left = x + 'px';
-  form.style.top  = y + 'px';
+        const left = document.createElement('div'); left.className = 'd-left';
+        left.innerHTML = `<div class="d-num">${d}</div><div class="d-dow">${DOW_CN[dow]}</div>`;
+        left.addEventListener('click', e => { e.stopPropagation(); clickDate(k); });
+        left.addEventListener('contextmenu', e => {
+          e.preventDefault();
+          showAddFormPopup(e, k);
+        });
 
-  nameInp.focus();
+        const inp = document.createElement('input');
+        inp.type = 'text'; inp.className = 'd-input';
+        inp.value = notes[k] || ''; inp.placeholder = getDayLabel(new Date(currentYear, m, d)); inp.dataset.k = k;
+        inp.addEventListener('input', () => {
+          if (inp.value.trim() === '') delete notes[k]; else notes[k] = inp.value;
+          scheduleSave();
+        });
+        inp.addEventListener('click', e => e.stopPropagation());
 
-  const closeHandler = ev => { if (ev.key === 'Escape') { wrap.remove(); document.removeEventListener('keydown', closeHandler); } };
-  document.addEventListener('keydown', closeHandler);
-  wrap.addEventListener('click', ev => { if (ev.target === wrap) wrap.remove(); });
-}
+        row.append(left, inp); card.appendChild(row);
+      }
+      cal.appendChild(card);
+    }
+  }
 
-function showEditForm(card, s) {
-  const form = document.createElement('div');
-  form.className = 'sp-form-card';
-  form.addEventListener('click', e => e.stopPropagation());
+  // ════════════════════════════════════════
+  //  区间选择
+  // ════════════════════════════════════════
+  function clickDate(k) {
+    const idx = sel.indexOf(k);
+    if (idx !== -1) sel.splice(idx, 1);
+    else if (sel.length < 2) sel.push(k);
+    else sel = [k];
+    refreshSel();
+  }
+  function refreshSel() {
+    document.querySelectorAll('.d-row').forEach(row =>
+      row.classList.toggle('sel', sel.includes(row.dataset.k)));
+    const box    = document.getElementById('interval-box');
+    const sticky = document.getElementById('sticky-top');
+    if (sel.length === 2) {
+      const [a, b] = [...sel].sort();
+      box.textContent = `${a}  →  ${b}   间隔 ${Math.round((new Date(b)-new Date(a))/86400000)} 天`;
+      box.classList.add('show');
+      // 锁定标题栏显示
+      pinHeader = true;
+      sticky.style.top = '0';
+    } else {
+      box.classList.remove('show');
+      // 解锁，立即按当前滚动位置决定是否隐藏
+      pinHeader = false;
+      const hdrH2 = document.getElementById('header').offsetHeight;
+      sticky.style.top = window.scrollY < hdrH2 ? '0' : `-${hdrH2}px`;
+    }
+  }
+  document.addEventListener('click', () => { if (sel.length > 0) { sel = []; refreshSel(); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel.length > 0) { sel = []; refreshSel(); } });
 
-  const nameInp = document.createElement('input');
-  nameInp.type = 'text'; nameInp.className = 'sp-finp';
-  nameInp.value = s.name; nameInp.maxLength = 20;
+  // ════════════════════════════════════════
+  //  持久化
+  // ════════════════════════════════════════
+  function persistAll() {
+    if (fileHandle) {
+      flushToFile().then(() => showSaved()).catch(() => {});
+    } else {
+      // 降级 localStorage
+      lsSet('cal_notes', notes);
+      lsSet('cal_specials', specials);
+      localStorage.setItem('cal-theme', document.documentElement.getAttribute('data-theme') || 'ocean');
+      showSaved();
+    }
+  }
 
-  const dateInp = document.createElement('input');
-  dateInp.type = 'date'; dateInp.className = 'sp-finp';
-  dateInp.value = s.date;
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => persistAll(), 800);
+  }
 
-  const btnRow = document.createElement('div'); btnRow.className = 'sp-fbtn-row';
-  const okBtn  = document.createElement('button'); okBtn.className = 'sp-ok'; okBtn.textContent = '确定';
-  okBtn.addEventListener('click', () => {
-    const name = nameInp.value.trim(), date = dateInp.value;
-    if (!name || !date) { nameInp.focus(); return; }
-    const idx = specials.findIndex(x => x.id === s.id);
-    if (idx !== -1) specials[idx] = { ...specials[idx], name, date };
-    persistAll();
-    renderSpecials();
-  });
-  const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
-  cancelBtn.addEventListener('click', () => renderSpecials());
+  function showSaved() {
+    const dot = document.querySelector('#file-status .fb-dot');
+    if (!dot) return;
+    dot.classList.remove('blink');
+    void dot.offsetWidth;
+    dot.classList.add('blink');
+    clearTimeout(indicatorTimer);
+    indicatorTimer = setTimeout(() => dot.classList.remove('blink'), 1000);
+  }
 
-  btnRow.append(okBtn, cancelBtn);
-  const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
-  inpCol.append(nameInp, dateInp);
-  form.append(inpCol, btnRow);
-  card.replaceWith(form);
-  nameInp.focus(); nameInp.select();
-}
+  // ════════════════════════════════════════
+  // ════════════════════════════════════════
+  //  滚动隐藏标题栏
+  // ════════════════════════════════════════
+  let lastScrollY = 0;
+  let pinHeader   = false; // 选中日期区间时锁定标题栏显示
 
-// ════════════════════════════════════════
-//  日历渲染
-// ════════════════════════════════════════
-// ── 节日表 ──
-const LUNAR_HOLIDAYS = {
-  '正月初一':'春节', '正月十五':'元宵节',
-  '五月初五':'端午节', '七月初七':'七夕节',
-  '八月十五':'中秋节', '九月初九':'重阳节',
-  '腊月二十九':'除夕', '腊月三十':'除夕',
-};
-const SOLAR_HOLIDAYS = {
-  '01-01':'元旦', '05-01':'劳动节',
-  '06-01':'儿童节', '10-01':'国庆节',
-};
-function getDayLabel(jsDate) {
-  const mm = String(jsDate.getMonth()+1).padStart(2,'0');
-  const dd = String(jsDate.getDate()).padStart(2,'0');
-  if (SOLAR_HOLIDAYS[`${mm}-${dd}`]) return SOLAR_HOLIDAYS[`${mm}-${dd}`];
-  const lunar = getLunar(jsDate);
-  return LUNAR_HOLIDAYS[lunar] || lunar;
-}
+  window.addEventListener('scroll', () => {
+    if (pinHeader) return;
+    const y        = window.scrollY;
+    const sticky   = document.getElementById('sticky-top');
+    const hdrH     = document.getElementById('header').offsetHeight;
+    if (y > lastScrollY && y >= hdrH) {
+      sticky.style.top = `-${hdrH}px`;
+    } else if (y < hdrH) {
+      sticky.style.top = '0';
+    }
 
-// ── 农历（浏览器内置 Intl API） ──
-const LUNAR_DAY = ['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
-  '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
-  '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
-const lunarFmt = (() => {
-  try { return new Intl.DateTimeFormat('zh-u-ca-chinese', { month: 'long', day: 'numeric' }); }
-  catch(e) { return null; }
-})();
-function getLunar(jsDate) {
-  if (!lunarFmt) return '';
-  try {
-    const parts = lunarFmt.formatToParts(jsDate);
-    const month = parts.find(p => p.type === 'month')?.value || '';
-    const day   = parseInt(parts.find(p => p.type === 'day')?.value) || 0;
-    return month + (LUNAR_DAY[day] || '');
-  } catch(e) { return ''; }
-}
+    lastScrollY = y;
+  }, { passive: true });
 
-function dateKey(m, d) {
-  return `${currentYear}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-}
+  // ════════════════════════════════════════
+  //  滚动到今日（位置百分比：0~1，直觉式控制）
+  //  0.0 = 顶部 | 0.5 = 中间 | 0.9 = 底部 | 1.0 = 最底
+  // ════════════════════════════════════════
+  const SCROLL_TODAY_POSITION = 0.5; // ← 在这里调整默认位置
+  function scrollToRow(row, position = SCROLL_TODAY_POSITION) {
+    if (!row) return;
+    const sticky = document.getElementById('sticky-top');
+    const stickyH = sticky ? sticky.offsetHeight : 0;
+    const windowH = window.innerHeight;
+    const elementTop = row.getBoundingClientRect().top + window.scrollY;
+    const elementH = row.offsetHeight;
 
-function render() {
-  const cal = document.getElementById('calendar');
-  cal.innerHTML = '';
-  const now      = new Date();
-  const todayKey = now.getFullYear() === currentYear ? dateKey(now.getMonth(), now.getDate()) : '';
-  const daysInMonth = getDaysInMonth(currentYear);
+    // 插值公式：position=0 元素顶在 sticky 下边，position=1 元素底在视口底部
+    const targetScroll = elementTop
+      - (1 - position) * stickyH
+      - (windowH - elementH) * position;
 
-  for (let m = 0; m < 12; m++) {
-    const card  = document.createElement('div'); card.className = 'm-card';
-    const title = document.createElement('div'); title.className = 'm-title';
-    title.textContent = MONTH_NAMES[m];
-    if (now.getFullYear() === currentYear && now.getMonth() === m) title.classList.add('m-cur');
-    card.appendChild(title);
+    const duration = 1000;
+    const start = window.scrollY;
+    const change = targetScroll - start;
+    const startTime = performance.now();
 
-    for (let d = 1; d <= daysInMonth[m]; d++) {
-      const dow = new Date(currentYear, m, d).getDay();
-      const k   = dateKey(m, d);
-      const row = document.createElement('div');
-      row.className = 'd-row' +
-        (dow===6 ? ' sat' : dow===0 ? ' sun' : '') +
-        (k===todayKey ? ' today' : '') +
-        (sel.includes(k) ? ' sel' : '');
-      row.dataset.k = k;
+    function animate(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      window.scrollTo(0, start + change * ease);
+      if (progress < 1) requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  }
+  function scrollToToday(position = SCROLL_TODAY_POSITION) {
+    const row = document.querySelector('.d-row.today');
+    if (!row) return;
+    const title = document.querySelector('.m-title.m-cur');
+    if (!title) { scrollToRow(row, position); return; }
 
-      const left = document.createElement('div'); left.className = 'd-left';
-      left.innerHTML = `<div class="d-num">${d}</div><div class="d-dow">${DOW_CN[dow]}</div>`;
-      left.addEventListener('click', e => { e.stopPropagation(); clickDate(k); });
-      left.addEventListener('contextmenu', e => {
-        e.preventDefault();
-        showAddFormPopup(e, k);
-      });
+    const titleBottom = title.getBoundingClientRect().bottom;
+    const windowH = window.innerHeight;
+    const elementTop = row.getBoundingClientRect().top + window.scrollY;
+    const elementH = row.offsetHeight;
 
-      const inp = document.createElement('input');
-      inp.type = 'text'; inp.className = 'd-input';
-      inp.value = notes[k] || ''; inp.placeholder = getDayLabel(new Date(currentYear, m, d)); inp.dataset.k = k;
-      inp.addEventListener('input', () => {
-        if (inp.value.trim() === '') delete notes[k]; else notes[k] = inp.value;
+    // 参考区间：月标题底部 → 视口底部
+    const targetScroll = elementTop - titleBottom - position * (windowH - titleBottom - elementH);
+
+    const duration = 1000;
+    const start = window.scrollY;
+    const change = targetScroll - start;
+    const startTime = performance.now();
+
+    function animate(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      window.scrollTo(0, start + change * ease);
+      if (progress < 1) requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  }
+  function scrollToDate(dateStr) {
+    scrollToRow(document.querySelector(`.d-row[data-k="${dateStr}"]`));
+  }
+  function setYear(y) {
+    const cal = document.getElementById('calendar');
+    cal.style.transition = 'opacity 0.15s';
+    cal.style.opacity = '0';
+    setTimeout(() => {
+      currentYear = y;
+      document.getElementById('yr-label').textContent = y;
+      document.getElementById('cal-title').textContent = '日历记事本';
+      document.title = `${y} 日历记事本`;
+      sel = [];
+      render();
+      renderSpecials();
+      cal.style.opacity = '1';
+    }, 150);
+  }
+  // ════════════════════════════════════════
+  //  主题切换
+  // ════════════════════════════════════════
+  (function() {
+    const saved = localStorage.getItem('cal-theme') || 'ocean';
+    document.documentElement.setAttribute('data-theme', saved);
+  })();
+
+  function initThemePicker() {
+    const dots = document.querySelectorAll('.t-dot');
+    const cur  = document.documentElement.getAttribute('data-theme') || 'ocean';
+    dots.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === cur);
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.theme;
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('cal-theme', t);
+        dots.forEach(b => b.classList.toggle('active', b.dataset.theme === t));
         scheduleSave();
       });
-      inp.addEventListener('click', e => e.stopPropagation());
-
-      row.append(left, inp); card.appendChild(row);
-    }
-    cal.appendChild(card);
-  }
-}
-
-// ════════════════════════════════════════
-//  区间选择
-// ════════════════════════════════════════
-function clickDate(k) {
-  const idx = sel.indexOf(k);
-  if (idx !== -1) sel.splice(idx, 1);
-  else if (sel.length < 2) sel.push(k);
-  else sel = [k];
-  refreshSel();
-}
-function refreshSel() {
-  document.querySelectorAll('.d-row').forEach(row =>
-    row.classList.toggle('sel', sel.includes(row.dataset.k)));
-  const box    = document.getElementById('interval-box');
-  const sticky = document.getElementById('sticky-top');
-  if (sel.length === 2) {
-    const [a, b] = [...sel].sort();
-    box.textContent = `${a}  →  ${b}   间隔 ${Math.round((new Date(b)-new Date(a))/86400000)} 天`;
-    box.classList.add('show');
-    // 锁定标题栏显示
-    pinHeader = true;
-    sticky.style.top = '0';
-  } else {
-    box.classList.remove('show');
-    // 解锁，立即按当前滚动位置决定是否隐藏
-    pinHeader = false;
-    const hdrH2 = document.getElementById('header').offsetHeight;
-    sticky.style.top = window.scrollY < hdrH2 ? '0' : `-${hdrH2}px`;
-  }
-}
-document.addEventListener('click', () => { if (sel.length > 0) { sel = []; refreshSel(); } });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel.length > 0) { sel = []; refreshSel(); } });
-
-// ════════════════════════════════════════
-//  持久化
-// ════════════════════════════════════════
-function persistAll() {
-  if (fileHandle) {
-    flushToFile().then(() => showSaved()).catch(() => {});
-  } else {
-    // 降级 localStorage
-    lsSet('cal_notes', notes);
-    lsSet('cal_specials', specials);
-    localStorage.setItem('cal-theme', document.documentElement.getAttribute('data-theme') || 'ocean');
-    showSaved();
-  }
-}
-
-function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => persistAll(), 800);
-}
-
-function showSaved() {
-  const el = document.getElementById('save-indicator');
-  el.classList.add('show');
-  clearTimeout(indicatorTimer);
-  indicatorTimer = setTimeout(() => el.classList.remove('show'), 1500);
-}
-
-// ════════════════════════════════════════
-// ════════════════════════════════════════
-//  滚动隐藏标题栏
-// ════════════════════════════════════════
-let lastScrollY = 0;
-let pinHeader   = false; // 选中日期区间时锁定标题栏显示
-
-window.addEventListener('scroll', () => {
-  if (pinHeader) return;
-  const y        = window.scrollY;
-  const sticky   = document.getElementById('sticky-top');
-  const hdrH     = document.getElementById('header').offsetHeight;
-  if (y > lastScrollY && y >= hdrH) {
-    sticky.style.top = `-${hdrH}px`;
-  } else if (y < hdrH) {
-    sticky.style.top = '0';
-  }
-
-  lastScrollY = y;
-}, { passive: true });
-
-// ════════════════════════════════════════
-//  滚动到今日（位置百分比：0~1，直觉式控制）
-//  0.0 = 顶部 | 0.5 = 中间 | 0.9 = 底部 | 1.0 = 最底
-// ════════════════════════════════════════
-const SCROLL_TODAY_POSITION = 0.5; // ← 在这里调整默认位置
-function scrollToRow(row, position = SCROLL_TODAY_POSITION) {
-  if (!row) return;
-  const sticky = document.getElementById('sticky-top');
-  const stickyH = sticky ? sticky.offsetHeight : 0;
-  const windowH = window.innerHeight;
-  const elementTop = row.getBoundingClientRect().top + window.scrollY;
-  const elementH = row.offsetHeight;
-
-  // 插值公式：position=0 元素顶在 sticky 下边，position=1 元素底在视口底部
-  const targetScroll = elementTop
-    - (1 - position) * stickyH
-    - (windowH - elementH) * position;
-
-  const duration = 1000;
-  const start = window.scrollY;
-  const change = targetScroll - start;
-  const startTime = performance.now();
-
-  function animate(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const ease = progress < 0.5
-      ? 4 * progress * progress * progress
-      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-    window.scrollTo(0, start + change * ease);
-    if (progress < 1) requestAnimationFrame(animate);
-  }
-  requestAnimationFrame(animate);
-}
-function scrollToToday(position = SCROLL_TODAY_POSITION) {
-  const row = document.querySelector('.d-row.today');
-  if (!row) return;
-  const title = document.querySelector('.m-title.m-cur');
-  if (!title) { scrollToRow(row, position); return; }
-
-  const titleBottom = title.getBoundingClientRect().bottom;
-  const windowH = window.innerHeight;
-  const elementTop = row.getBoundingClientRect().top + window.scrollY;
-  const elementH = row.offsetHeight;
-
-  // 参考区间：月标题底部 → 视口底部
-  const targetScroll = elementTop - titleBottom - position * (windowH - titleBottom - elementH);
-
-  const duration = 1000;
-  const start = window.scrollY;
-  const change = targetScroll - start;
-  const startTime = performance.now();
-
-  function animate(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const ease = progress < 0.5
-      ? 4 * progress * progress * progress
-      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-    window.scrollTo(0, start + change * ease);
-    if (progress < 1) requestAnimationFrame(animate);
-  }
-  requestAnimationFrame(animate);
-}
-function scrollToDate(dateStr) {
-  scrollToRow(document.querySelector(`.d-row[data-k="${dateStr}"]`));
-}
-function setYear(y) {
-  const cal = document.getElementById('calendar');
-  cal.style.transition = 'opacity 0.15s';
-  cal.style.opacity = '0';
-  setTimeout(() => {
-    currentYear = y;
-    document.getElementById('yr-label').textContent = y;
-    document.getElementById('cal-title').textContent = '日历记事本';
-    document.title = `${y} 日历记事本`;
-    sel = [];
-    render();
-    renderSpecials();
-    cal.style.opacity = '1';
-  }, 150);
-}
-// ════════════════════════════════════════
-//  主题切换
-// ════════════════════════════════════════
-(function() {
-  const saved = localStorage.getItem('cal-theme') || 'ocean';
-  document.documentElement.setAttribute('data-theme', saved);
-})();
-
-function initThemePicker() {
-  const dots = document.querySelectorAll('.t-dot');
-  const cur  = document.documentElement.getAttribute('data-theme') || 'ocean';
-  dots.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.theme === cur);
-    btn.addEventListener('click', () => {
-      const t = btn.dataset.theme;
-      document.documentElement.setAttribute('data-theme', t);
-      localStorage.setItem('cal-theme', t);
-      dots.forEach(b => b.classList.toggle('active', b.dataset.theme === t));
-      scheduleSave();
     });
-  });
-}
+  }
 
-function applyFontStyle() {
-  const cnLabel = localStorage.getItem('cal-font-cn') || '微软雅黑';
-  const enLabel = localStorage.getItem('cal-font-en') || 'hooge 05_55';
-  const activeCN = CN_FONTS.find(f => f.label === cnLabel) || CN_FONTS[4];
-  const activeEN = EN_FONTS.find(f => f.label === enLabel) || EN_FONTS[0];
-  let s = document.getElementById('_font_style');
-  if (!s) { s = document.createElement('style'); s.id = '_font_style'; document.head.appendChild(s); }
-  s.textContent =
-    `@font-face{font-family:_ccn;src:local('${activeCN.local}');unicode-range:U+4E00-U+9FFF,U+3400-U+4DBF,U+F900-U+FAFF,U+2E80-U+2EFF,U+3000-U+303F,U+3040-U+309F,U+30A0-U+30FF,U+FF00-U+FFEF}` +
-    `body{font-family:'${activeEN.local}',_ccn,'${activeCN.local}',sans-serif!important}`;
-}
+  function applyFontStyle() {
+    const cnLabel = localStorage.getItem('cal-font-cn') || '微软雅黑';
+    const enLabel = localStorage.getItem('cal-font-en') || 'hooge 05_55';
+    const activeCN = CN_FONTS.find(f => f.label === cnLabel) || CN_FONTS[4];
+    const activeEN = EN_FONTS.find(f => f.label === enLabel) || EN_FONTS[0];
+    let s = document.getElementById('_font_style');
+    if (!s) { s = document.createElement('style'); s.id = '_font_style'; document.head.appendChild(s); }
+    s.textContent =
+      `@font-face{font-family:_ccn;src:local('${activeCN.local}');unicode-range:U+4E00-U+9FFF,U+3400-U+4DBF,U+F900-U+FAFF,U+2E80-U+2EFF,U+3000-U+303F,U+3040-U+309F,U+30A0-U+30FF,U+FF00-U+FFEF}` +
+      `body{font-family:'${activeEN.local}',_ccn,'${activeCN.local}',sans-serif!important}`;
+  }
 
-function initFontPicker() {
-  const savedCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
-  const savedEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
-  let activeCN = CN_FONTS.find(f => f.label === savedCN) || CN_FONTS[4];
-  let activeEN = EN_FONTS.find(f => f.label === savedEN) || EN_FONTS[0];
-  applyFontStyle();
+  function initFontPicker() {
+    const savedCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
+    const savedEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
+    let activeCN = CN_FONTS.find(f => f.label === savedCN) || CN_FONTS[4];
+    let activeEN = EN_FONTS.find(f => f.label === savedEN) || EN_FONTS[0];
+    applyFontStyle();
 
-  const wrap  = document.getElementById('font-picker-wrap');
-  const btn   = document.getElementById('font-btn');
-  const panel = document.createElement('div');
-  panel.id = 'font-picker-panel';
+    const wrap  = document.getElementById('font-picker-wrap');
+    const btn   = document.getElementById('font-btn');
+    const panel = document.createElement('div');
+    panel.id = 'font-picker-panel';
 
-  function buildRow(labelText, fonts, getActive, setActive) {
-    const row = document.createElement('div');
-    row.className = 'fp-row';
-    const lbl = document.createElement('span');
-    lbl.className = 'fp-label';
-    lbl.textContent = labelText;
-    row.appendChild(lbl);
-    fonts.forEach(f => {
-      const opt = document.createElement('button');
-      opt.className = 'fp-opt' + (f === getActive() ? ' active' : '');
-      opt.textContent = f.label;
-      opt.style.fontFamily = `'${f.local}'`;
-      opt.addEventListener('click', e => {
-        e.stopPropagation();
-        setActive(f);
-        row.querySelectorAll('.fp-opt').forEach(o => o.classList.remove('active'));
-        opt.classList.add('active');
+    function buildRow(labelText, fonts, getActive, setActive) {
+      const row = document.createElement('div');
+      row.className = 'fp-row';
+      const lbl = document.createElement('span');
+      lbl.className = 'fp-label';
+      lbl.textContent = labelText;
+      row.appendChild(lbl);
+      fonts.forEach(f => {
+        const opt = document.createElement('button');
+        opt.className = 'fp-opt' + (f === getActive() ? ' active' : '');
+        opt.textContent = f.label;
+        opt.style.fontFamily = `'${f.local}'`;
+        opt.addEventListener('click', e => {
+          e.stopPropagation();
+          setActive(f);
+          row.querySelectorAll('.fp-opt').forEach(o => o.classList.remove('active'));
+          opt.classList.add('active');
+        });
+        row.appendChild(opt);
       });
-      row.appendChild(opt);
+      return row;
+    }
+
+    panel.appendChild(buildRow('中文', CN_FONTS,
+      () => activeCN,
+      f => { activeCN = f; localStorage.setItem('cal-font-cn', f.label); applyFontStyle(); scheduleSave(); }
+    ));
+    panel.appendChild(buildRow('英数', EN_FONTS,
+      () => activeEN,
+      f => { activeEN = f; localStorage.setItem('cal-font-en', f.label); applyFontStyle(); scheduleSave(); }
+    ));
+    wrap.appendChild(panel);
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!panel.classList.contains('open')) {
+        const rect = btn.getBoundingClientRect();
+        panel.style.top = (rect.bottom + 6) + 'px';
+      }
+      panel.classList.toggle('open');
     });
-    return row;
+    document.addEventListener('click', () => panel.classList.remove('open'));
   }
 
-  panel.appendChild(buildRow('中文', CN_FONTS,
-    () => activeCN,
-    f => { activeCN = f; localStorage.setItem('cal-font-cn', f.label); applyFontStyle(); scheduleSave(); }
-  ));
-  panel.appendChild(buildRow('英数', EN_FONTS,
-    () => activeEN,
-    f => { activeEN = f; localStorage.setItem('cal-font-en', f.label); applyFontStyle(); scheduleSave(); }
-  ));
-  wrap.appendChild(panel);
-
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    if (!panel.classList.contains('open')) {
-      const rect = btn.getBoundingClientRect();
-      panel.style.top = (rect.bottom + 6) + 'px';
-    }
-    panel.classList.toggle('open');
-  });
-  document.addEventListener('click', () => panel.classList.remove('open'));
-}
-
-init();
+  init();
 </script>
 </body>
 </html>
