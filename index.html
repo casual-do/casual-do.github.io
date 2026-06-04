@@ -522,7 +522,7 @@
     render();
     renderSpecials();
     updateFileBar();
-    scrollToToday();
+    scrollToTodayAfterCollapse();
   }
 
   async function flushToFile() {
@@ -630,35 +630,40 @@
     render(); renderSpecials();
     initThemePicker();
     initFontPicker();
-    if (!FSA_OK) {
+
+    // ════════════════════════════════════════
+    //  文件系统访问 —— 异步恢复，不影响首次渲染
+    // ════════════════════════════════════════
+    if (FSA_OK) {
+      try {
+        const h = await idbGet('handle');
+        if (h) {
+          const perm = await h.queryPermission({ mode: 'readwrite' });
+          if (perm === 'granted') {
+            await connectHandle(h, false);
+            return;
+          } else {
+            // 需要用户点击重新授权
+            fileHandle = h;
+            const bar = document.getElementById('file-status');
+            bar.innerHTML = '';
+            bar.append(
+              mkEl('span','fb-dot orange'),
+              mkEl('span','', { id:'fb-filename', textContent: h.name }),
+              mkEl('span','', { id:'fb-status',   textContent:'需重新授权' }),
+              mkBtn('点击授权', () => reconnect(h), true)
+            );
+            fileHandle = null;
+          }
+        }
+      } catch(e) { /* IDB 读取失败，忽略 */ }
+    } else {
       notes    = lsGet('cal_notes',    {});
       specials = lsGet('cal_specials', []);
       render(); renderSpecials();
-      scrollToToday(); // localStorage：数据就绪后只滚一次
-      return;
     }
 
-    // 尝试从 IDB 恢复句柄
-    try {
-      const h = await idbGet('handle');
-      if (!h) return;
-      const perm = await h.queryPermission({ mode: 'readwrite' });
-      if (perm === 'granted') {
-        await connectHandle(h, false);
-      } else {
-        // 需要用户点击重新授权
-        fileHandle = h;
-        const bar = document.getElementById('file-status');
-        bar.innerHTML = '';
-        bar.append(
-          mkEl('span','fb-dot orange'),
-          mkEl('span','', { id:'fb-filename', textContent: h.name }),
-          mkEl('span','', { id:'fb-status',   textContent:'需重新授权' }),
-          mkBtn('点击授权', () => reconnect(h), true)
-        );
-        fileHandle = null;
-      }
-    } catch(e) { /* IDB 读取失败，忽略 */ }
+    scrollToTodayAfterCollapse();
   }
 
   // localStorage 降级
@@ -1122,16 +1127,16 @@
   function scrollToToday(position = SCROLL_TODAY_POSITION) {
     const row = document.querySelector('.d-row.today');
     if (!row) return;
-    const title = document.querySelector('.m-title.m-cur');
-    if (!title) { scrollToRow(row, position); return; }
-
-    const titleBottom = title.getBoundingClientRect().bottom;
+    const sticky = document.getElementById('sticky-top');
+    const wrap = document.getElementById('specials-wrap');
+    const stickyH = (sticky ? sticky.offsetHeight : 0) + (wrap ? wrap.offsetHeight : 0);
     const windowH = window.innerHeight;
     const elementTop = row.getBoundingClientRect().top + window.scrollY;
     const elementH = row.offsetHeight;
 
-    // 参考区间：月标题底部 → 视口底部
-    const targetScroll = elementTop - titleBottom - position * (windowH - titleBottom - elementH);
+    const targetScroll = elementTop
+      - (1 - position) * stickyH
+      - (windowH - elementH) * position;
 
     const duration = 1000;
     const start = window.scrollY;
@@ -1148,6 +1153,30 @@
       if (progress < 1) requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
+  }
+  function scrollToTodayAfterCollapse(pos = SCROLL_TODAY_POSITION) {
+    const bar = document.getElementById('specials-bar');
+    if (!bar) { scrollToToday(pos); return; }
+    let done = false;
+    const go = () => {
+      if (done) return;
+      done = true;
+      bar.removeEventListener('transitionend', onEnd);
+      scrollToToday(pos);
+    };
+    const onEnd = (e) => {
+      if (e.propertyName !== 'max-height') return;
+      go();
+    };
+    bar.addEventListener('transitionend', onEnd);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // applySpCollapse (调度于 renderSpecials 内的 rAF) 已执行，
+        // 第二个 rAF 确保布局已稳定后再读取位置
+        void bar.offsetHeight;
+        go();
+      });
+    });
   }
   function scrollToDate(dateStr) {
     scrollToRow(document.querySelector(`.d-row[data-k="${dateStr}"]`));
