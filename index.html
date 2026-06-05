@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -814,7 +814,7 @@
       bar.style.maxHeight = twoRowH + 'px';
       btn.textContent = '▾';
     } else {
-      bar.style.maxHeight = fullH + 'px';
+      bar.style.maxHeight = 'none';
       btn.textContent = '▴';
     }
   }
@@ -1204,11 +1204,13 @@
   function scrollToDate(dateStr) {
     scrollToRow(document.querySelector(`.d-row[data-k="${dateStr}"]`));
   }
+  let yearTimer = null;
   function setYear(y) {
+    clearTimeout(yearTimer);
     const cal = document.getElementById('calendar');
     cal.style.transition = 'opacity 0.15s';
     cal.style.opacity = '0';
-    setTimeout(() => {
+    yearTimer = setTimeout(() => {
       currentYear = y;
       document.getElementById('yr-label').textContent = y;
       document.getElementById('cal-title').textContent = '日历记事本';
@@ -1307,6 +1309,7 @@
       }
       panel.classList.toggle('open');
     });
+    panel.addEventListener('click', e => e.stopPropagation());
     document.addEventListener('click', () => panel.classList.remove('open'));
   }
 
