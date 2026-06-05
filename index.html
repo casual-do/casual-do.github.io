@@ -94,6 +94,7 @@
       --c-input-color: #a8b0c0;
     }
     [data-theme="dark"] #header { background: rgba(0,0,0,0.22); }
+    [data-theme="dark"] #font-picker-panel { background: rgba(0,0,0,0.22); }
     [data-theme="dark"] #year-nav { background: rgba(255,255,255,0.08); }
     [data-theme="dark"] .fb-btn   { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
     [data-theme="dark"] .sp-cnt-future { background: rgba(93,173,226,0.13); color: #7ec8e8; }
@@ -353,7 +354,10 @@
     #font-picker-wrap { position: relative; }
     #font-picker-panel {
       position: fixed; left: 50%; transform: translateX(-50%);
-      background: var(--c-card-bg); border: 1px solid var(--c-specials-br);
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(20px) saturate(1.8);
+      -webkit-backdrop-filter: blur(20px) saturate(1.8);
+      border: 1px solid var(--c-specials-br);
       border-radius: 8px; padding: 10px 14px;
       box-shadow: 0 6px 24px rgba(0,0,0,0.18);
       z-index: 300; display: none; max-width: 90vw;
@@ -1299,18 +1303,29 @@
       () => activeEN,
       f => { activeEN = f; localStorage.setItem('cal-font-en', f.label); applyFontStyle(); scheduleSave(); }
     ));
-    wrap.appendChild(panel);
+    document.body.appendChild(panel);
 
+    const GAP = 0;
     btn.addEventListener('click', e => {
       e.stopPropagation();
       if (!panel.classList.contains('open')) {
-        const rect = btn.getBoundingClientRect();
-        panel.style.top = (rect.bottom + 6) + 'px';
+        panel.style.top = (document.getElementById('sticky-top').getBoundingClientRect().bottom + GAP) + 'px';
       }
       panel.classList.toggle('open');
     });
     panel.addEventListener('click', e => e.stopPropagation());
     document.addEventListener('click', () => panel.classList.remove('open'));
+
+    new MutationObserver(() => {
+      if (!panel.classList.contains('open')) return;
+      let t0 = null;
+      const follow = ts => {
+        if (!t0) t0 = ts;
+        panel.style.top = (document.getElementById('sticky-top').getBoundingClientRect().bottom + GAP) + 'px';
+        if (ts - t0 < 800) requestAnimationFrame(follow);
+      };
+      requestAnimationFrame(follow);
+    }).observe(document.getElementById('sticky-top'), { attributes: true, attributeFilter: ['style'] });
   }
 
   init();
