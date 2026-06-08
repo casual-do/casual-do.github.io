@@ -333,6 +333,13 @@
     .d-row.today .d-num, .d-row.today .d-dow { color: #fff !important; }
     .d-row.sel .d-left { background: var(--c-sel) !important; }
     .d-row.sel .d-num,  .d-row.sel .d-dow  { color: #fff !important; }
+    .d-row.lunar-new:not(.today):not(.sel) {
+      background: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--c-accent) 16%, transparent) 0%,
+        transparent 55%
+      );
+    }
     .d-input {
       flex: 1; border: none; outline: none; background: transparent;
       font-size: 0.73rem; color: var(--c-input-color); padding: 3px 6px;
@@ -1001,13 +1008,16 @@
       card.appendChild(title);
 
       for (let d = 1; d <= daysInMonth[m]; d++) {
-        const dow = new Date(currentYear, m, d).getDay();
-        const k   = dateKey(m, d);
+        const dow    = new Date(currentYear, m, d).getDay();
+        const k      = dateKey(m, d);
+        const jsDate = new Date(currentYear, m, d);
+        const isLunarNew = getLunar(jsDate).endsWith('初一');
         const row = document.createElement('div');
         row.className = 'd-row' +
           (dow===6 ? ' sat' : dow===0 ? ' sun' : '') +
           (k===todayKey ? ' today' : '') +
-          (sel.includes(k) ? ' sel' : '');
+          (sel.includes(k) ? ' sel' : '') +
+          (isLunarNew ? ' lunar-new' : '');
         row.dataset.k = k;
 
         const left = document.createElement('div'); left.className = 'd-left';
@@ -1020,7 +1030,7 @@
 
         const inp = document.createElement('input');
         inp.type = 'text'; inp.className = 'd-input';
-        inp.value = notes[k] || ''; inp.placeholder = getDayLabel(new Date(currentYear, m, d)); inp.dataset.k = k;
+        inp.value = notes[k] || ''; inp.placeholder = getDayLabel(jsDate); inp.dataset.k = k;
         inp.addEventListener('input', () => {
           if (inp.value.trim() === '') delete notes[k]; else notes[k] = inp.value;
           scheduleSave();
