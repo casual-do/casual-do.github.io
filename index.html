@@ -28,6 +28,8 @@
       --c-input-color: #555;
       --font-en: '05_55', monospace;
       --font-cn: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+      --nm-light: color-mix(in srgb, var(--c-specials-bg) 82%, white);
+      --nm-dark:  color-mix(in srgb, var(--c-specials-bg) 82%, black);
     }
     [data-theme="forest"] {
       --c-body-bg:     #eef3f0;
@@ -195,8 +197,8 @@
     #specials-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 7px;
-      padding: 7px 9px 6px;
+      gap: 7px; 				/* 卡片之间的间距（含行间距） */
+      padding: 10px 9px 10px;	/* 上7 / 左右9 / 下20（之前加大过） */
       background: var(--c-specials-bg);
       border-bottom: 1px solid var(--c-specials-br);
       box-shadow: 0 4px 16px rgba(0,0,0,0.5);
@@ -217,11 +219,15 @@
     .sp-toggle-btn:hover { opacity: 0.9; }
     .sp-card {
       position: relative;
-      background: var(--c-card-bg);
-      border-radius: 7px;
+      background: var(--c-specials-bg);
+      border-radius: 10px;
       padding: 6px 10px;
       min-width: 108px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.09);
+      box-shadow: 3px 2px 7px var(--nm-dark), -4px -5px 10px var(--nm-light);
+      will-change: transform;
+    }
+    .sp-card:hover {
+      box-shadow: 4px 10px 18px var(--nm-dark), -4px -2px 8px var(--nm-light);
     }
     .sp-name {
       font-size: 0.78rem; font-weight: 700; color: var(--c-text);
@@ -403,6 +409,7 @@
     <div id="font-picker-wrap">
       <button class="fb-btn" id="font-btn">字体</button>
     </div>
+    <button class="fb-btn" id="expired-toggle-btn" title="显示/隐藏已过期特殊日期">往日</button>
     <div id="interval-box">&nbsp;</div>
     <div id="file-status"></div>
   </div>
@@ -479,7 +486,8 @@
   let sel        = [];
   let fileHandle = null;
   let saveTimer  = null, indicatorTimer = null;
-  let spCollapsed = (localStorage.getItem('sp-collapsed') ?? 'true') === 'true';
+  let spCollapsed  = (localStorage.getItem('sp-collapsed')       ?? 'true')  === 'true';
+  let hideExpired  = (localStorage.getItem('sp-hide-expired')    ?? 'false') === 'true';
 
   function escHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -537,6 +545,10 @@
       }
       if (data.fontCN) localStorage.setItem('cal-font-cn', data.fontCN);
       if (data.fontEN) localStorage.setItem('cal-font-en', data.fontEN);
+      if (data.hideExpired !== undefined) {
+        hideExpired = !!data.hideExpired;
+        localStorage.setItem('sp-hide-expired', hideExpired);
+      }
       applyFontStyle();
       // 同步字体选择器高亮
       const fpPanel = document.getElementById('font-picker-panel');
@@ -565,7 +577,7 @@
     const theme  = document.documentElement.getAttribute('data-theme') || 'ocean';
     const fontCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
     const fontEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
-    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN }, null, 2));
+    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN, hideExpired }, null, 2));
     await writable.close();
   }
 
@@ -664,6 +676,7 @@
     render(); renderSpecials();
     initThemePicker();
     initFontPicker();
+    initExpiredToggle();
 
     // ════════════════════════════════════════
     //  文件系统访问 —— 异步恢复，不影响首次渲染
@@ -707,6 +720,21 @@
   // ════════════════════════════════════════
   //  特殊日期
   // ════════════════════════════════════════
+  function addTiltEffect(card) {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left)  / r.width  - 0.5;
+      const y = (e.clientY - r.top)   / r.height - 0.5;
+      const a = 22;
+      card.style.transition = 'transform 0.05s linear, box-shadow 0.3s ease';
+      card.style.transform  = `perspective(360px) rotateX(${y * a}deg) rotateY(${-x * a}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transition = 'transform 0.55s ease, box-shadow 0.3s ease';
+      card.style.transform  = '';
+    });
+  }
+
   function renderSpecials() {
     const bar   = document.getElementById('specials-bar');
     bar.innerHTML = '';
@@ -733,6 +761,7 @@
       `<div class="sp-today-dow">${now.getMonth()+1}月${now.getDate()}日 周${DOW_CN[now.getDay()]}</div>` +
       `<div class="sp-today-lunar">${getDayLabel(now)}</div>`;
     bar.appendChild(todayCard);
+    addTiltEffect(todayCard);
 
     const sorted = [...specials].sort((a, b) => {
       const da = new Date(a.date) - today, db = new Date(b.date) - today;
@@ -744,6 +773,7 @@
     for (const s of sorted) {
       const d = new Date(s.date); d.setHours(0,0,0,0);
       const diff = Math.round((d - today) / 86400000);
+      if (hideExpired && diff < 0) continue;
       let cntText, cntClass;
       if      (diff === 0)          { cntText = '就是今天！'; cntClass = 'sp-cnt-today'; }
       else if (diff > 0 && diff<=7) { cntText = `<span class="sp-label">还有</span><span class="sp-n">${diff}</span><span class="sp-label">天</span>`;  cntClass = 'sp-cnt-soon';   }
@@ -773,6 +803,7 @@
         renderSpecials();
       });
       bar.appendChild(card);
+      addTiltEffect(card);
     }
 
     const addBtn = document.createElement('div');
@@ -801,7 +832,11 @@
     const fullH = bar.scrollHeight;
     const firstCard = bar.querySelector('.sp-card, .sp-today-card');
     if (!firstCard) return;
-    const twoRowH = 7 + firstCard.offsetHeight * 2 + 7 + 6;
+    const barStyle = getComputedStyle(bar);
+    const pt = parseInt(barStyle.paddingTop)    || 0;
+    const pb = parseInt(barStyle.paddingBottom) || 0;
+    const rg = parseInt(barStyle.rowGap ?? barStyle.gap) || 0;
+    const twoRowH = pt + firstCard.offsetHeight * 2 + rg + pb;
 
     if (fullH <= twoRowH + 4) return;
 
@@ -1242,6 +1277,23 @@
     const saved = localStorage.getItem('cal-theme') || 'ocean';
     document.documentElement.setAttribute('data-theme', saved);
   })();
+
+  function initExpiredToggle() {
+    const btn = document.getElementById('expired-toggle-btn');
+    const update = () => {
+      btn.classList.toggle('primary', hideExpired);
+      btn.title = hideExpired ? '显示已过期特殊日期' : '隐藏已过期特殊日期';
+    };
+    update();
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      hideExpired = !hideExpired;
+      localStorage.setItem('sp-hide-expired', hideExpired);
+      update();
+      renderSpecials();
+      persistAll();
+    });
+  }
 
   function initThemePicker() {
     const dots = document.querySelectorAll('.t-dot');
