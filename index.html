@@ -5,32 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>日历记事本</title>
   <style>
+    /* ---- 全局盒模型重置 ---- */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ---- CSS 自定义属性（浅色主题"深海"） ---- */
     :root {
-      --c-body-bg:     #eef0f3;
-      --c-header-bg:   #1e2a3a;
-      --c-specials-bg: #e4e9ef;
-      --c-specials-br: #cdd3da;
-      --c-mtitle-from: rgba(61,90,117,0.18);
-      --c-mtitle-to:   rgba(82,113,141,0.18);
-      --c-accent:      #2980b9;
-      --c-accent-dk:   #2471a3;
-      --c-today:       #e74c3c;
-      --c-sel:         #f39c12;
-      --c-sat:         #2980b9;
-      --c-sun:         #c0392b;
-      --c-text:        #2d3436;
-      --c-card-bg:     #fff;
-      --c-row-br:      #f2f3f5;
-      --c-row-hover:   #edf2f7;
-      --c-input-focus: #fffde7;
-      --c-input-color: #555;
-      --font-en: '05_55', monospace;
-      --font-cn: 'Microsoft YaHei', 'PingFang SC', sans-serif;
-      --nm-light: color-mix(in srgb, var(--c-specials-bg) 82%, white);
-      --nm-dark:  color-mix(in srgb, var(--c-specials-bg) 82%, black);
+      --c-body-bg:     #eef0f3;   /* 页面背景 */
+      --c-header-bg:   #1e2a3a;   /* 顶部栏深色底色 */
+      --c-specials-bg: #e4e9ef;   /* 特殊日期栏背景 */
+      --c-specials-br: #cdd3da;   /* 特殊日期栏边框 */
+      --c-mtitle-from: rgba(61,90,117,0.18);  /* 月份标题渐变起点 */
+      --c-mtitle-to:   rgba(82,113,141,0.18);  /* 月份标题渐变终点 */
+      --c-accent:      #2980b9;   /* 主题强调色 */
+      --c-accent-dk:   #2471a3;   /* 强调色深色变体（hover） */
+      --c-today:       #e74c3c;   /* 今日高亮色 */
+      --c-sel:         #f39c12;   /* 选中日期高亮色 */
+      --c-sat:         #2980b9;   /* 周六文字色 */
+      --c-sun:         #c0392b;   /* 周日文字色 */
+      --c-text:        #2d3436;   /* 正文文字色 */
+      --c-card-bg:     #fff;      /* 月份卡片背景 */
+      --c-row-br:      #f2f3f5;   /* 日期行分割线 */
+      --c-row-hover:   #edf2f7;   /* 日期行悬停背景 */
+      --c-input-focus: #fffde7;   /* 输入框聚焦背景 */
+      --c-input-color: #555;      /* 输入框文字色 */
+      --font-en: '05_55', monospace;            /* 英文字体 */
+      --font-cn: 'Microsoft YaHei', 'PingFang SC', sans-serif;  /* 中文字体 */
+      --nm-light: color-mix(in srgb, var(--c-specials-bg) 82%, white);  /* 新拟态亮影 */
+      --nm-dark:  color-mix(in srgb, var(--c-specials-bg) 82%, black);   /* 新拟态暗影 */
     }
+    /* ---- 森林主题 ---- */
     [data-theme="forest"] {
       --c-body-bg:     #eef3f0;
       --c-header-bg:   #1a3328;
@@ -40,8 +43,9 @@
       --c-mtitle-to:   rgba(52,108,74,0.18);
       --c-accent:      #27ae60;
       --c-accent-dk:   #219a52;
-      --c-sat:         #27ae60;
+      --c-sat:         #27ae60;   /* 周六文字色同步强调色 */
     }
+    /* ---- 暮光主题 ---- */
     [data-theme="twilight"] {
       --c-body-bg:     #f0eef5;
       --c-header-bg:   #2a1b40;
@@ -53,6 +57,7 @@
       --c-accent-dk:   #7d3c98;
       --c-sat:         #8e44ad;
     }
+    /* ---- 暖阳主题 ---- */
     [data-theme="warm"] {
       --c-body-bg:     #f5f0eb;
       --c-header-bg:   #3a2010;
@@ -62,8 +67,9 @@
       --c-mtitle-to:   rgba(148,88,38,0.18);
       --c-accent:      #d35400;
       --c-accent-dk:   #b84700;
-      --c-sel:         #e67e22;
+      --c-sel:         #e67e22;   /* 覆盖默认选中色更暖 */
     }
+    /* ---- 石墨主题 ---- */
     [data-theme="graphite"] {
       --c-body-bg:     #e9eaec;
       --c-header-bg:   #1a1a1a;
@@ -75,6 +81,7 @@
       --c-accent-dk:   #4a5c6b;
       --c-sat:         #596d7e;
     }
+    /* ---- 暗夜主题 ---- */
     [data-theme="dark"] {
       --c-body-bg:     #12141a;
       --c-header-bg:   #0a0c11;
@@ -82,28 +89,29 @@
       --c-specials-br: #252836;
       --c-mtitle-from: rgba(20,26,45,0.30);
       --c-mtitle-to:   rgba(30,36,60,0.30);
-      --c-accent:      #5dade2;
+      --c-accent:      #5dade2;   /* 浅蓝强调色 */
       --c-accent-dk:   #4a9fd4;
-      --c-today:       #e74c3c;
-      --c-sel:         #e67e22;
-      --c-sat:         #5dade2;
-      --c-sun:         #e05555;
-      --c-text:        #c8cdd8;
+      --c-today:       #e74c3c;   /* 今日红 */
+      --c-sel:         #e67e22;   /* 选中橙 */
+      --c-sat:         #5dade2;   /* 周六浅蓝 */
+      --c-sun:         #e05555;   /* 周日淡红 */
+      --c-text:        #c8cdd8;   /* 浅色文字 */
       --c-card-bg:     #1c1f2b;
       --c-row-br:      #252836;
       --c-row-hover:   #242738;
       --c-input-focus: #1e2540;
       --c-input-color: #a8b0c0;
     }
+    /* ---- 暗夜主题额外覆盖 ---- */
     [data-theme="dark"] #header { background: rgba(0,0,0,0.22); }
     [data-theme="dark"] #font-picker-panel { background: rgba(0,0,0,0.22); }
     [data-theme="dark"] #year-nav { background: rgba(255,255,255,0.08); }
     [data-theme="dark"] .fb-btn   { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
-    [data-theme="dark"] .sp-cnt-future { background: rgba(93,173,226,0.13); color: #7ec8e8; }
-    [data-theme="dark"] .sp-cnt-soon   { background: rgba(230,126,34,0.13);  color: #e89855; }
-    [data-theme="dark"] .sp-cnt-today  { background: rgba(46,204,113,0.13);  color: #52c97a; }
-    [data-theme="dark"] .sp-cnt-past   { background: rgba(255,255,255,0.05); color: #5a6070; }
-    [data-theme="dark"] .sp-finp {
+    [data-theme="dark"] .sp-cnt-future { background: rgba(93,173,226,0.13); color: #7ec8e8; }  /* 未来事件 */
+    [data-theme="dark"] .sp-cnt-soon   { background: rgba(230,126,34,0.13);  color: #e89855; }  /* 即将到来 */
+    [data-theme="dark"] .sp-cnt-today  { background: rgba(46,204,113,0.13);  color: #52c97a; }  /* 今日 */
+    [data-theme="dark"] .sp-cnt-past   { background: rgba(255,255,255,0.05); color: #5a6070; }  /* 已过期 */
+    [data-theme="dark"] .sp-finp {                                         /* 特殊日期输入框 */
       background: #0e1018;
       border-color: #2d3348;
       color: var(--c-input-color);
@@ -111,6 +119,7 @@
     [data-theme="dark"] .sp-finp:focus { border-color: var(--c-accent); }
     [data-theme="dark"] .sp-fbtn-row button.sp-cancel { background: #2d3348; color: #a8b0c0; }
 
+    /* ---- 页面主体 ---- */
     body {
       font-family: var(--font-en), var(--font-cn);
       background: var(--c-body-bg);
@@ -118,6 +127,7 @@
       min-height: 100vh;
     }
 
+    /* ---- 顶部粘性容器（滚动隐藏标题栏） ---- */
     #sticky-top {
       position: sticky;
       top: 0;
@@ -125,8 +135,9 @@
       will-change: top;
       transition: top 0.75s;
     }
+    /* ---- 标题栏 ---- */
     #header {
-      background: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.18);   /* 毛玻璃半透明 */
       backdrop-filter: blur(20px) saturate(1.8);
       -webkit-backdrop-filter: blur(20px) saturate(1.8);
       color: var(--c-text);
@@ -135,17 +146,20 @@
       align-items: center;
       gap: 10px;
     }
+    /* 标题栏左侧标题 */
     #header h1 { font-size: 0.95rem; font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
+    /* ---- 年份切换导航 ---- */
     #year-nav {
       display: flex; align-items: center; gap: 2px;
       background: rgba(0,0,0,0.08); border-radius: 6px; padding: 2px 5px;
     }
-    #yr-label { font-size: 0.88rem; font-weight: 700; min-width: 36px; text-align: center; }
-    .yr-btn {
+    #yr-label { font-size: 0.88rem; font-weight: 700; min-width: 36px; text-align: center; }  /* 年份文字 */
+    .yr-btn {                                                    /* 年份前后箭头 */
       background: none; border: none; color: var(--c-text); opacity: 0.5; cursor: pointer;
       font-size: 1.1rem; padding: 0 2px; line-height: 1; font-family: inherit;
     }
     .yr-btn:hover { opacity: 1; }
+    /* ---- 日期区间显示框 ---- */
     #interval-box {
       background: #e74c3c;
       color: #fff;
@@ -153,24 +167,26 @@
       border-radius: 11px;
       font-size: 0.78rem;
       font-weight: 600;
-      visibility: hidden;
+      visibility: hidden;       /* 默认隐藏 */
       white-space: nowrap;
     }
-    #interval-box.show { visibility: visible; }
+    #interval-box.show { visibility: visible; }  /* 选中两个日期时显示 */
+    /* ---- 文件状态栏 ---- */
     #file-status {
       display: flex;
       align-items: center;
       gap: 7px;
-      margin-left: auto;
+      margin-left: auto;        /* 推至右侧 */
       white-space: nowrap;
       font-size: 0.7rem;
     }
-    #file-status #fb-filename { color: #a8b8c8; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
-    #file-status #fb-status   { color: #7f8c8d; }
-    .fb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-    .fb-dot.green  { background: #27ae60; }
-    .fb-dot.orange { background: #e67e22; }
-    .fb-dot.red    { background: #e74c3c; }
+    #file-status #fb-filename { color: #a8b8c8; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }  /* 文件名溢出省略 */
+    #file-status #fb-status   { color: #7f8c8d; }  /* 状态文字 */
+    .fb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }  /* 状态指示灯 */
+    .fb-dot.green  { background: #27ae60; }   /* 已连接 */
+    .fb-dot.orange { background: #e67e22; }   /* 未连接 */
+    .fb-dot.red    { background: #e74c3c; }   /* 错误 */
+    /* 保存闪烁动画 */
     @keyframes fb-blink {
       0%, 100% { opacity: 1; background: #27ae60; }
       50% { opacity: 1; background: #e74c3c; }
@@ -178,6 +194,7 @@
     .fb-dot.blink {
       animation: fb-blink 0.5s ease-in-out 3;
     }
+    /* ---- 通用操作按钮 ---- */
     .fb-btn {
       padding: 2px 9px;
       border: 1px solid rgba(0,0,0,0.15);
@@ -191,33 +208,35 @@
       white-space: nowrap;
     }
     .fb-btn:hover { opacity: 1; }
-    .fb-btn.primary { background: var(--c-accent); color: #fff; border-color: var(--c-accent); opacity: 1; }
+    .fb-btn.primary { background: var(--c-accent); color: #fff; border-color: var(--c-accent); opacity: 1; }  /* 主要按钮 */
     .fb-btn.primary:hover { background: var(--c-accent-dk); border-color: var(--c-accent-dk); }
 
+    /* ---- 特殊日期栏 ---- */
     #specials-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 7px; 				/* 卡片之间的间距（含行间距） */
-      padding: 10px 9px 10px;	/* 上7 / 左右9 / 下20（之前加大过） */
+      gap: 7px;
+      padding: 10px 9px 10px;
       background: var(--c-specials-bg);
       border-bottom: 1px solid var(--c-specials-br);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-      overflow: hidden;
-      transition: max-height 0.35s ease;
+      box-shadow: 0 2px 2px rgba(0,0,0,0.5);      /* 传统阴影 */
+      /* box-shadow: 0 0 2px var(--c-accent);     /* 下方发光阴影 */
+      overflow: hidden;                           /* 折叠时裁切 */
+      transition: max-height 0.35s ease;          /* 折叠动画 */
     }
-    #specials-wrap {
+    #specials-wrap {                  /* 特殊日期栏粘性容器 */
       position: sticky;
       top: 0;
       z-index: 150;
     }
-    .sp-toggle-btn {
+    .sp-toggle-btn {                  /* 折叠展开切换按钮 */
       position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
       background: none; border: none; padding: 0 6px;
       font-size: 0.55rem; color: var(--c-text); opacity: 0.35;
       cursor: pointer; line-height: 1; z-index: 3;
     }
     .sp-toggle-btn:hover { opacity: 0.9; }
-    .sp-card {
+    .sp-card {                        /* 特殊日期卡片（新拟态） */
       position: relative;
       background: var(--c-specials-bg);
       border-radius: 10px;
@@ -226,55 +245,56 @@
       box-shadow: 3px 2px 7px var(--nm-dark), -4px -5px 10px var(--nm-light);
       will-change: transform;
     }
-    .sp-card:hover {
+    .sp-card:hover {                  /* 悬停发光 */
       box-shadow: 0 0 10px var(--c-accent), 4px 10px 18px var(--nm-dark), -4px -2px 8px var(--nm-light);
     }
-    .sp-name {
+    .sp-name {                        /* 特殊日期名称 */
       font-size: 0.78rem; font-weight: 700; color: var(--c-text);
-      padding-right: 14px; margin-bottom: 1px;
+      padding-right: 14px; margin-bottom: 1px;          /* 留出删除按钮空间 */
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;
     }
-    .sp-date { font-size: 0.65rem; color: #95a5a6; margin-bottom: 4px; }
-    .sp-cnt {
+    .sp-date { font-size: 0.65rem; color: #95a5a6; margin-bottom: 4px; }  /* 日期文字 */
+    .sp-cnt {                         /* 倒计时标签 */
       font-size: 0.68rem; font-weight: 400;
       padding: 1px 7px; border-radius: 4px;
       display: inline-flex; align-items: center; white-space: nowrap;
     }
-    .sp-cnt .sp-label { opacity: 0.55; }
-    .sp-cnt .sp-n { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.5px; margin: 0 3px; }
-    .sp-cnt-future { background: #e8f4fd; color: var(--c-accent); }
-    .sp-cnt-soon   { background: #fef0e7; color: #e67e22; }
-    .sp-cnt-today  { background: #eafaf1; color: #27ae60; }
-    .sp-cnt-past   { background: #f2f3f4; color: #aaa;    }
+    .sp-cnt .sp-label { opacity: 0.55; }   /* 倒计时文字 "还有/已过" */
+    .sp-cnt .sp-n { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.5px; margin: 0 3px; }  /* 倒计时数字 */
+    .sp-cnt-future { background: #e8f4fd; color: var(--c-accent); }   /* 未来事件（>7天） */
+    .sp-cnt-soon   { background: #fef0e7; color: #e67e22; }          /* 即将到来（<=7天） */
+    .sp-cnt-today  { background: #eafaf1; color: #27ae60; }          /* 今日 */
+    .sp-cnt-past   { background: #f2f3f4; color: #aaa;    }          /* 已过期 */
     /* 今日卡片 */
     .sp-today-card { border-left: 3px solid var(--c-today); min-width: 88px; }
-    .sp-today-label { font-size: 0.62rem; color: var(--c-today); font-weight: 700; margin-bottom: 2px; }
-    .sp-today-dow   { font-size: 0.75rem; font-weight: 700; color: var(--c-text); }
-    .sp-today-mday  { font-size: 0.68rem; color: #7f8c8d; margin-top: 1px; }
-    .sp-today-lunar { font-size: 0.68rem; color: #95a5a6; }
-    .sp-del {
+    .sp-today-label { font-size: 0.62rem; color: var(--c-today); font-weight: 700; margin-bottom: 2px; }  /* "今日"标签 */
+    .sp-today-dow   { font-size: 0.75rem; font-weight: 700; color: var(--c-text); }  /* 星期几 */
+    .sp-today-mday  { font-size: 0.68rem; color: #7f8c8d; margin-top: 1px; }          /* 月日 */
+    .sp-today-lunar { font-size: 0.68rem; color: #95a5a6; }                           /* 农历 */
+    .sp-del {                         /* 删除按钮 */
       position: absolute; top: 4px; right: 5px;
       background: none; border: none; color: #ccc;
       font-size: 0.88rem; cursor: pointer; padding: 0; line-height: 1;
     }
     .sp-del:hover { color: #e74c3c; }
-    .sp-add-card {
+    .sp-add-card {                    /* 添加卡片（虚线框） */
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       min-width: 72px; padding: 6px 10px; border-radius: 7px;
       border: 2px dashed #bcc4ce; background: transparent; color: #8a9bb0;
       cursor: pointer; transition: border-color 0.15s, color 0.15s;
     }
     .sp-add-card:hover { border-color: var(--c-accent); color: var(--c-accent); }
-    .sp-add-icon { font-size: 1.2rem; line-height: 1; }
-    .sp-add-label { font-size: 0.62rem; margin-top: 2px; }
+    .sp-add-icon { font-size: 1.2rem; line-height: 1; }      /* 加号 */
+    .sp-add-label { font-size: 0.62rem; margin-top: 2px; }   /* "添加特殊日期" */
+    /* ---- 特殊日期表单卡片（内联） ---- */
     .sp-form-card {
       display: flex; flex-direction: row; align-items: stretch; gap: 5px;
       padding: 6px 8px;
       background: var(--c-card-bg); border-radius: 7px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.09);
     }
-    .sp-finp-col { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 100px; }
-    .sp-finp {
+    .sp-finp-col { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 100px; }  /* 输入列 */
+    .sp-finp {                                                    /* 特殊日期输入框 */
       border: 1px solid #dce1e7; border-radius: 4px;
       padding: 2px 5px; font-size: 0.72rem; font-family: inherit; outline: none;
       flex: 1; width: 100%;
@@ -282,19 +302,19 @@
     .sp-finp[type="text"] { width: auto; }
     .sp-finp[type="date"] { width: auto; }
     .sp-finp:focus { border-color: var(--c-accent); }
-    .sp-fbtn-row { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
+    .sp-fbtn-row { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }  /* 按钮列 */
     .sp-fbtn-row button {
       flex: 1; padding: 2px 10px; border: none; border-radius: 4px;
       font-size: 0.72rem; cursor: pointer; font-family: inherit; white-space: nowrap;
     }
-    .sp-fbtn-row button.sp-ok     { background: var(--c-accent); color: #fff; }
-    .sp-fbtn-row button.sp-cancel { background: #ecf0f1; color: #555; }
-    /* 右键弹出表单 */
+    .sp-fbtn-row button.sp-ok     { background: var(--c-accent); color: #fff; }    /* 确定按钮 */
+    .sp-fbtn-row button.sp-cancel { background: #ecf0f1; color: #555; }            /* 取消按钮 */
+    /* ---- 右键弹出表单 ---- */
     .sp-popup-overlay {
       position: fixed; inset: 0; z-index: 999;
-      background: transparent;
+      background: transparent;            /* 透明遮罩，用于点击关闭 */
     }
-    .sp-popup-form {
+    .sp-popup-form {                      /* 弹出表单容器 */
       position: fixed; z-index: 1000;
       display: flex; flex-direction: row; align-items: stretch; gap: 5px;
       padding: 10px 12px;
@@ -303,69 +323,68 @@
       border: 1px solid var(--c-specials-br);
     }
 
-    /* ── 月份卡片 ── */
+    /* ── 月份卡片网格 ── */
     #calendar {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
       gap: 9px; padding: 9px;
     }
-    .m-card { background: var(--c-card-bg); border-radius: 7px; overflow: clip; box-shadow: 0 1px 4px rgba(0,0,0,0.09); }
-    .m-title {
+    .m-card { background: var(--c-card-bg); border-radius: 7px; overflow: clip; box-shadow: 0 1px 4px rgba(0,0,0,0.09); }  /* 月份卡片 */
+    .m-title {                        /* 月份标题行 */
       background: linear-gradient(135deg, var(--c-mtitle-from) 0%, var(--c-mtitle-to) 100%);
       backdrop-filter: blur(20px) saturate(1.8);
       -webkit-backdrop-filter: blur(20px) saturate(1.8);
       color: var(--c-text); text-align: center;
       padding: 5px 0 4px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.5px;
       position: sticky; top: calc(var(--specials-height, 60px) - 1px); z-index: 5;
-      /* transition: top 0.75s ease;*/
     }
-    .m-title.m-cur {
+    .m-title.m-cur {                  /* 当前月份高亮 */
       background: linear-gradient(135deg, rgba(231,76,60,0.13) 0%, rgba(231,76,60,0.20) 100%);
       color: var(--c-today);
     }
-    .d-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--c-row-br); transition: background 0.12s, color 0.12s; }
+    .d-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--c-row-br); transition: background 0.12s, color 0.12s; }  /* 单日行 */
     .d-row:last-child { border-bottom: none; }
-    .d-left {
+    .d-left {                         /* 日期数字列（左侧） */
       flex-shrink: 0; width: 34px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 2px 0; cursor: pointer; user-select: none; transition: background 0.12s;
     }
     .d-left:hover { background: var(--c-row-hover); }
-    .d-num { font-size: 0.82rem; font-weight: 700; line-height: 1; color: var(--c-text); }
-    .d-dow { font-size: 0.56rem; color: #b2bec3; line-height: 1; margin-top: 1px; }
-    .d-row.sat .d-num, .d-row.sat .d-dow { color: var(--c-sat); }
-    .d-row.sun .d-num, .d-row.sun .d-dow { color: var(--c-sun); }
-    .d-row.today .d-left { background: var(--c-today); }
+    .d-num { font-size: 0.82rem; font-weight: 700; line-height: 1; color: var(--c-text); }  /* 日期数字 */
+    .d-dow { font-size: 0.56rem; color: #b2bec3; line-height: 1; margin-top: 1px; }         /* 星期缩写 */
+    .d-row.sat .d-num, .d-row.sat .d-dow { color: var(--c-sat); }   /* 周六 */
+    .d-row.sun .d-num, .d-row.sun .d-dow { color: var(--c-sun); }   /* 周日 */
+    .d-row.today .d-left { background: var(--c-today); }            /* 今日背景 */
     .d-row.today .d-num, .d-row.today .d-dow { color: #fff !important; }
-    .d-row.sel .d-left { background: var(--c-sel) !important; }
+    .d-row.sel .d-left { background: var(--c-sel) !important; }     /* 选中日期 */
     .d-row.sel .d-num,  .d-row.sel .d-dow  { color: #fff !important; }
-    .d-row.lunar-new:not(.today):not(.sel) {
+    .d-row.lunar-new:not(.today):not(.sel) {   /* 农历初一（除今日和选中外） */
       background: linear-gradient(
         to right,
         color-mix(in srgb, var(--c-accent) 16%, transparent) 0%,
         transparent 55%
       );
     }
-    .d-input {
+    .d-input {                        /* 记事输入框 */
       flex: 1; border: none; outline: none; background: transparent;
       font-size: 0.73rem; color: var(--c-input-color); padding: 3px 6px;
       font-family: inherit; min-width: 0; height: 26px;
     }
     .d-input:focus { background: var(--c-input-focus); }
-    .d-input::placeholder { color: #b2bec3; font-size: 0.68rem; }
+    .d-input::placeholder { color: #b2bec3; font-size: 0.68rem; }  /* 占位符（农历/节日） */
     /* ── 主题切换器 ── */
     #theme-picker { display: flex; align-items: center; gap: 5px; }
-    .t-dot {
+    .t-dot {                          /* 主题色圆点 */
       width: 14px; height: 14px; border-radius: 50%;
       border: 2px solid transparent; outline: none;
       cursor: pointer; transition: transform 0.15s, border-color 0.15s;
       flex-shrink: 0; padding: 0;
     }
     .t-dot:hover { transform: scale(1.25); }
-    .t-dot.active { border-color: rgba(255,255,255,0.9); transform: scale(1.2); }
+    .t-dot.active { border-color: rgba(255,255,255,0.9); transform: scale(1.2); }  /* 当前主题高亮 */
     /* ── 字体选择器 ── */
     #font-picker-wrap { position: relative; }
-    #font-picker-panel {
+    #font-picker-panel {              /* 字体选择面板（毛玻璃） */
       position: fixed; left: 50%; transform: translateX(-50%);
       background: rgba(255,255,255,0.18);
       backdrop-filter: blur(20px) saturate(1.8);
@@ -376,16 +395,16 @@
       z-index: 300; display: none; max-width: 90vw;
     }
     #font-picker-panel.open { display: block; }
-    .fp-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .fp-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }  /* 字体选项行 */
     .fp-row + .fp-row { margin-top: 6px; }
-    .fp-label { font-size: 0.62rem; color: #95a5a6; width: 24px; text-align: right; flex-shrink: 0; }
-    .fp-opt {
+    .fp-label { font-size: 0.62rem; color: #95a5a6; width: 24px; text-align: right; flex-shrink: 0; }  /* 中文/英数标签 */
+    .fp-opt {                         /* 单个字体选项 */
       padding: 2px 7px; border: 1px solid var(--c-specials-br); border-radius: 4px;
       background: transparent; font-size: 0.72rem; cursor: pointer;
       color: var(--c-text); transition: border-color 0.12s, color 0.12s, background 0.12s;
     }
     .fp-opt:hover:not(.active) { border-color: var(--c-accent); color: var(--c-accent); }
-    .fp-opt.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }
+    .fp-opt.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }  /* 当前选中字体 */
   </style>
 </head>
 <body>
