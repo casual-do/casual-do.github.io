@@ -277,6 +277,28 @@
       font-size: 0.88rem; cursor: pointer; padding: 0; line-height: 1;
     }
     .sp-del:hover { color: #e74c3c; }
+    /* ---- 删除撤销 Toast ---- */
+    #delete-toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      background: color-mix(in srgb, var(--c-card-bg) 5%, transparent);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      color: var(--c-text); padding: 12px 22px;
+      border-radius: 12px; font-size: 0.92rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      display: flex; align-items: center; gap: 16px;
+      z-index: 9999; pointer-events: none; opacity: 0;
+      border: 1px solid color-mix(in srgb, var(--c-specials-br) 60%, transparent);
+      transition: opacity 0.25s, transform 0.25s;
+      transform: translateX(-50%) translateY(8px);
+      white-space: nowrap;
+    }
+    #delete-toast.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    #undo-btn {
+      background: var(--c-accent); color: #fff; border: none;
+      padding: 5px 14px; border-radius: 5px; cursor: pointer;
+      font-size: 0.88rem; font-weight: 700; letter-spacing: 0.5px;
+    }
+    #undo-btn:hover { background: var(--c-accent-dk); }
     .sp-add-card {                    /* 添加卡片（虚线框） */
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       min-width: 72px; padding: 6px 10px; border-radius: 7px;
@@ -537,6 +559,7 @@
   let saveTimer  = null, indicatorTimer = null;
   let spCollapsed  = (localStorage.getItem('sp-collapsed')       ?? 'true')  === 'true';
   let hideExpired  = (localStorage.getItem('sp-hide-expired')    ?? 'false') === 'true';
+  let pendingDelete = null;
 
   function escHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -784,6 +807,24 @@
     });
   }
 
+  function showDeleteToast(name) {
+    const toast = document.getElementById('delete-toast');
+    toast.innerHTML = `已删除「${escHtml(name)}」<button id="undo-btn">撤销</button>`;
+    toast.classList.add('show');
+    document.getElementById('undo-btn').addEventListener('click', () => {
+      if (!pendingDelete) return;
+      clearTimeout(pendingDelete.timer);
+      specials.push(pendingDelete.item);
+      renderSpecials();
+      pendingDelete = null;
+      toast.classList.remove('show');
+    });
+  }
+
+  function hideToast() {
+    document.getElementById('delete-toast').classList.remove('show');
+  }
+
   function renderSpecials() {
     const bar   = document.getElementById('specials-bar');
     bar.innerHTML = '';
@@ -847,9 +888,22 @@
         `<button class="sp-del" title="删除">×</button>`;
       card.querySelector('.sp-del').addEventListener('click', e => {
         e.stopPropagation();
+        if (pendingDelete) {
+          clearTimeout(pendingDelete.timer);
+          persistAll();
+          pendingDelete = null;
+        }
+        pendingDelete = {
+          item: { ...s },
+          timer: setTimeout(() => {
+            persistAll();
+            pendingDelete = null;
+            hideToast();
+          }, 10000)
+        };
         specials = specials.filter(x => x.id !== s.id);
-        persistAll();
         renderSpecials();
+        showDeleteToast(s.name);
       });
       bar.appendChild(card);
       addTiltEffect(card);
@@ -1441,5 +1495,6 @@
 
   init();
 </script>
+<div id="delete-toast"></div>
 </body>
 </html>
