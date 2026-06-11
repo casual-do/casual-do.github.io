@@ -215,14 +215,13 @@
     #specials-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px; /* 特殊日期卡片间距 */
-      padding: 10px 5px 10px; /* 用于调整卡片间距，分别是上、左、右、下 */
+      gap: 10px;
+      padding: 10px 5px 10px;
       background: var(--c-specials-bg);
       border-bottom: 1px solid var(--c-specials-br);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.4);      /* 传统阴影 */
-      /* box-shadow: 0 0 2px var(--c-accent);     /* 下方发光阴影 */
-      overflow: hidden;                           /* 折叠时裁切 */
-      transition: max-height 0.35s ease;          /* 折叠动画 */
+      box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+      overflow: hidden;
+      transition: max-height 0.35s ease;
     }
     #specials-wrap {                  /* 特殊日期栏粘性容器 */
       position: sticky;
@@ -521,14 +520,32 @@
     { label: '仿宋',       local: 'FangSong' },
     { label: '隶书',       local: 'LiSu' },
     { label: '宋体',       local: 'SimSun' },
-    { label: '华文中宋',   local: 'STZhongsong' },
     { label: '黑体',       local: 'SimHei' },
-    { label: '华文细黑',   local: 'STXihei' },
+
+    { label: '方正舒体',   local: '方正舒体' },
+    { label: '方正姚体',   local: '方正姚体' },
+
+    { label: '华文彩云',   local: '华文彩云' },
+    { label: '华文仿宋',   local: '华文仿宋' },
+    { label: '华文琥珀',   local: '华文琥珀' },
+    { label: '华文楷体',   local: '华文楷体' },
+    { label: '华文隶书',   local: '华文隶书' },
+    { label: '华文宋体',   local: '华文宋体' },
+    { label: '华文细黑',   local: '华文细黑' },
+    { label: '华文行楷',   local: '华文行楷' },
+    { label: '华文新魏',   local: '华文新魏' },
+    { label: '华文中宋',   local: '华文中宋' },
+
     { label: '微软雅黑',   local: 'Microsoft YaHei' },
     { label: '雅黑 Light', local: 'Microsoft YaHei Light' },
+    { label: '微软正黑',   local: 'Microsoft JhengHei' },
+    { label: '正黑 Light', local: 'Microsoft JhengHei Light' },
     { label: '思源黑体',   local: 'Source Han Sans SC' },
   ];
   const EN_FONTS = [
+    { label: '华文彩云',   local: '华文彩云' },
+    { label: '华文琥珀',   local: '华文琥珀' },
+    { label: 'Agency FB',           local: 'Agency FB' },
     { label: 'Bubblegum Sans',      local: 'Bubblegum Sans Regular' },
     { label: 'Cabin Sketch',        local: 'Cabin Sketch Regular' },
     { label: 'Castellar',           local: 'Castellar' },
@@ -543,7 +560,8 @@
     { label: 'Dungeon',             local: 'Dungeon' },
     { label: 'Edwardian Script ITC',local: 'Edwardian Script ITC' },
     { label: 'Fredoka One',         local: 'Fredoka One' },
-    { label: 'HarmonyOS Sans Black',local: 'HarmonyOS Sans Black' },
+    { label: 'HarmonyOS Sans',          local: 'HarmonyOS Sans' },
+    { label: 'HarmonyOS Sans Light',   local: 'HarmonyOS Sans Light' },
     { label: 'hooge 05_53',         local: 'hooge 05_53' },
     { label: 'hooge 05_54',         local: 'hooge 05_54' },
     { label: 'hooge 05_55',         local: 'hooge 05_55' },
@@ -555,6 +573,7 @@
     { label: 'OCR A Extended',      local: 'OCR A Extended' },
     { label: 'Old English',         local: 'Old English Text MT' },
     { label: 'Pangolin',            local: 'Pangolin Regular' },
+    { label: 'Papyrus',             local: 'Papyrus' },
     { label: 'Poor Richard',        local: 'Poor Richard' },
     { label: 'Ravie',               local: 'Ravie' },
     { label: 'Segoe UI Black',      local: 'Segoe UI Black' },
@@ -770,6 +789,7 @@
     initThemePicker();
     initFontPicker();
     initExpiredToggle();
+    initSpecialsBarGlow();
 
     // ════════════════════════════════════════
     //  文件系统访问 —— 异步恢复，不影响首次渲染
@@ -1453,6 +1473,26 @@
       update();
       renderSpecials();
       persistAll();
+    });
+  }
+
+  function initSpecialsBarGlow() {
+    const bar = document.getElementById('specials-bar');
+    let frame;
+    bar.addEventListener('mousemove', e => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const rect = bar.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+        const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+        bar.style.background =
+          `radial-gradient(circle at ${x}% ${y}%, color-mix(in srgb, var(--c-accent) 18%, transparent) 0%, transparent 60%),` +
+          `var(--c-specials-bg)`;
+      });
+    });
+    bar.addEventListener('mouseleave', () => {
+      cancelAnimationFrame(frame);
+      bar.style.background = '';
     });
   }
 
