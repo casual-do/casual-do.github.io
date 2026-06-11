@@ -293,6 +293,20 @@
       white-space: nowrap;
     }
     #delete-toast.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    #year-toast {
+      position: fixed; left: 50%; bottom: 78px; transform: translateX(-50%);
+      background: color-mix(in srgb, var(--c-card-bg) 5%, transparent);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      color: var(--c-text); padding: 10px 20px;
+      border-radius: 10px; font-size: 0.85rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      z-index: 9999; pointer-events: none; opacity: 0;
+      border: 1px solid color-mix(in srgb, var(--c-specials-br) 60%, transparent);
+      transition: opacity 0.25s, transform 0.25s;
+      transform: translateX(-50%) translateY(8px);
+      white-space: nowrap;
+    }
+    #year-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     #undo-btn {
       background: var(--c-accent); color: #fff; border: none;
       padding: 5px 14px; border-radius: 5px; cursor: pointer;
@@ -883,7 +897,7 @@
       card.addEventListener('click', e => {
         e.stopPropagation();
         const dateYear = parseInt(s.date.slice(0, 4));
-        if (dateYear !== currentYear) setYear(dateYear);
+        if (dateYear !== currentYear) { setYear(dateYear, s.date); return; }
         sel = [s.date]; refreshSel();
         scrollToDate(s.date);
       });
@@ -1393,22 +1407,29 @@
   function scrollToDate(dateStr) {
     scrollToRow(document.querySelector(`.d-row[data-k="${dateStr}"]`));
   }
-  let yearTimer = null;
-  function setYear(y) {
+  let yearTimer = null, yearToastTimer = null;
+  function setYear(y, scrollTo) {
     clearTimeout(yearTimer);
     const cal = document.getElementById('calendar');
-    cal.style.transition = 'opacity 0.15s';
+    cal.style.transition = 'opacity 0.25s';
     cal.style.opacity = '0';
+    const toast = document.getElementById('year-toast');
+    toast.textContent = `${y} 年`;
+    toast.classList.add('show');
+    clearTimeout(yearToastTimer);
+    yearToastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
     yearTimer = setTimeout(() => {
       currentYear = y;
       document.getElementById('yr-label').textContent = y;
       document.getElementById('cal-title').textContent = '日历记事本';
       document.title = `${y} 日历记事本`;
-      sel = [];
+      sel = scrollTo ? [scrollTo] : [];
       render();
       renderSpecials();
+      if (scrollTo) { scrollToDate(scrollTo); refreshSel(); }
+      cal.style.transition = 'opacity 0.25s';
       cal.style.opacity = '1';
-    }, 150);
+    }, 280);
   }
   // ════════════════════════════════════════
   //  主题切换
@@ -1533,5 +1554,6 @@
   init();
 </script>
 <div id="delete-toast"></div>
+<div id="year-toast"></div>
 </body>
 </html>
