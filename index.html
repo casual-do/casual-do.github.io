@@ -331,6 +331,13 @@
     }
     .sp-fbtn-row button.sp-ok     { background: var(--c-accent); color: #fff; }    /* 确定按钮 */
     .sp-fbtn-row button.sp-cancel { background: #ecf0f1; color: #555; }            /* 取消按钮 */
+    .sp-sync {                                                      /* 同步到备注按钮 */
+      writing-mode: vertical-rl; padding: 4px 5px; border: none; border-radius: 4px;
+      background: var(--c-accent); color: #fff; cursor: pointer;
+      font-family: inherit; font-size: 0.65rem; letter-spacing: 1px;
+      align-self: stretch;
+    }
+    .sp-sync:hover { filter: brightness(1.15); }
     /* ---- 右键弹出表单 ---- */
     .sp-popup-overlay {
       position: fixed; inset: 0; z-index: 999;
@@ -435,7 +442,7 @@
     .t-dot:hover { transform: scale(1.25); }
     .t-dot.active { border-color: rgba(255,255,255,0.9); transform: scale(1.2); }  /* 当前主题高亮 */
     /* ── 字体选择器 ── */
-    #font-picker-wrap { position: relative; }
+    #font-picker-wrap { position: relative; display: flex; align-items: center; }
     #font-picker-panel {              /* 字体选择面板（毛玻璃） */
       position: fixed; left: 50%; transform: translateX(-50%);
       background: rgba(255,255,255,0.18);
@@ -986,6 +993,12 @@
     okBtn.addEventListener('click', () => {
       const name = nameInp.value.trim(), date = dateInp.value;
       if (!name || !date) { nameInp.focus(); return; }
+      if (specials.some(x => x.name === name && x.date === date)) {
+        nameInp.style.outline = '2px solid #e74c3c';
+        nameInp.placeholder = '已存在';
+        setTimeout(() => { nameInp.style.outline = ''; nameInp.placeholder = '名称（如：生日）'; }, 1200);
+        nameInp.focus(); nameInp.select(); return;
+      }
       specials.push({ id: Date.now().toString(), name, date });
       persistAll();
       renderSpecials();
@@ -1014,6 +1027,7 @@
     const nameInp = document.createElement('input');
     nameInp.type = 'text'; nameInp.className = 'sp-finp';
     nameInp.placeholder = '名称（如：生日）'; nameInp.maxLength = 20;
+    if (preDate && notes[preDate]) nameInp.value = notes[preDate];
 
     const dateInp = document.createElement('input');
     dateInp.type = 'date'; dateInp.className = 'sp-finp';
@@ -1024,6 +1038,12 @@
     okBtn.addEventListener('click', () => {
       const name = nameInp.value.trim(), date = dateInp.value;
       if (!name || !date) { nameInp.focus(); return; }
+      if (specials.some(x => x.name === name && x.date === date)) {
+        nameInp.style.outline = '2px solid #e74c3c';
+        nameInp.placeholder = '已存在';
+        setTimeout(() => { nameInp.style.outline = ''; nameInp.placeholder = '名称（如：生日）'; }, 1200);
+        nameInp.focus(); nameInp.select(); return;
+      }
       specials.push({ id: Date.now().toString(), name, date });
       persistAll();
       renderSpecials();
@@ -1079,10 +1099,27 @@
     const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
     cancelBtn.addEventListener('click', () => renderSpecials());
 
+    const syncBtn = document.createElement('button'); syncBtn.className = 'sp-sync'; syncBtn.textContent = '同步';
+    let syncTimer;
+    syncBtn.addEventListener('click', () => {
+      const name = nameInp.value.trim(), date = dateInp.value;
+      if (!name || !date) { nameInp.focus(); return; }
+      notes[date] = name;
+      persistAll();
+      render();
+      clearTimeout(syncTimer);
+      nameInp.style.outline = '2px solid #27ae60';
+      syncBtn.textContent = '完成';
+      syncTimer = setTimeout(() => {
+        nameInp.style.outline = '';
+        syncBtn.textContent = '同步';
+      }, 1200);
+    });
+
     btnRow.append(okBtn, cancelBtn);
     const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
     inpCol.append(nameInp, dateInp);
-    form.append(inpCol, btnRow);
+    form.append(inpCol, btnRow, syncBtn);
     card.replaceWith(form);
     nameInp.focus(); nameInp.select();
   }
