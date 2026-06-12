@@ -882,10 +882,10 @@
     todayCard.addEventListener('click', e => {
       e.stopPropagation();
       const realYear = now.getFullYear();
+      const k = `${realYear}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
       if (realYear !== currentYear) {
-        setYear(realYear);
+        setYear(realYear, k);
       } else {
-        const k = dateKey(now.getMonth(), now.getDate());
         sel = [k]; refreshSel(); scrollToToday();
       }
     });
