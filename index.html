@@ -160,17 +160,6 @@
     }
     .yr-btn:hover { opacity: 1; }
     /* ---- 日期区间显示框 ---- */
-    #interval-box {
-      background: #e74c3c;
-      color: #fff;
-      padding: 3px 11px;
-      border-radius: 11px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      visibility: hidden;       /* 默认隐藏 */
-      white-space: nowrap;
-    }
-    #interval-box.show { visibility: visible; }  /* 选中两个日期时显示 */
     /* ---- 文件状态栏 ---- */
     #file-status {
       display: flex;
@@ -293,15 +282,15 @@
     }
     #delete-toast.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
     #year-toast {
-      position: fixed; left: 50%; bottom: 78px; transform: translateX(-50%);
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
       background: color-mix(in srgb, var(--c-card-bg) 5%, transparent);
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      color: var(--c-text); padding: 10px 20px;
-      border-radius: 10px; font-size: 0.85rem;
+      color: var(--c-text); padding: 12px 22px;
+      border-radius: 12px; font-size: 0.92rem;
       box-shadow: 0 4px 24px rgba(0,0,0,0.12);
       z-index: 9999; pointer-events: none; opacity: 0;
       border: 1px solid color-mix(in srgb, var(--c-specials-br) 60%, transparent);
-      transition: opacity 0.25s, transform 0.25s;
+      transition: opacity 0.25s, transform 0.25s, bottom 0.25s;
       transform: translateX(-50%) translateY(8px);
       white-space: nowrap;
     }
@@ -434,7 +423,6 @@
       .d-left { width: 30px; }
       .d-num { font-size: 0.75rem; }
       .d-input { font-size: 0.68rem; padding: 2px 4px; }
-      #interval-box { font-size: 0.7rem; padding: 2px 8px; }
       #font-picker-panel { left: 5%; right: 5%; transform: none; width: 90vw; }
     }
     @media (max-width: 400px) {
@@ -501,7 +489,6 @@
       <button class="fb-btn" id="font-btn">字体</button>
     </div>
     <button class="fb-btn" id="expired-toggle-btn" title="显示/隐藏已过期特殊日期">往日</button>
-    <div id="interval-box">&nbsp;</div>
     <div id="file-status"></div>
   </div>
 </div>
@@ -859,11 +846,26 @@
       renderSpecials();
       pendingDelete = null;
       toast.classList.remove('show');
+      stackToasts();
     });
+    stackToasts();
   }
 
   function hideToast() {
     document.getElementById('delete-toast').classList.remove('show');
+    stackToasts();
+  }
+
+  function stackToasts() {
+    const dt = document.getElementById('delete-toast');
+    const yt = document.getElementById('year-toast');
+    const dtShow = dt.classList.contains('show');
+    const ytShow = yt.classList.contains('show');
+    if (dtShow && ytShow) {
+      yt.style.bottom = (24 + dt.offsetHeight + 8) + 'px';
+    } else {
+      yt.style.bottom = '';
+    }
   }
 
   function renderSpecials() {
@@ -1265,21 +1267,15 @@
   function refreshSel() {
     document.querySelectorAll('.d-row').forEach(row =>
       row.classList.toggle('sel', sel.includes(row.dataset.k)));
-    const box    = document.getElementById('interval-box');
-    const sticky = document.getElementById('sticky-top');
+    const toast = document.getElementById('year-toast');
     if (sel.length === 2) {
       const [a, b] = [...sel].sort();
-      box.textContent = `${a}  →  ${b}   间隔 ${Math.round((new Date(b)-new Date(a))/86400000)} 天`;
-      box.classList.add('show');
-      // 锁定标题栏显示
-      pinHeader = true;
-      sticky.style.top = '0';
+      toast.textContent = `${a}  →  ${b}   间隔 ${Math.round((new Date(b)-new Date(a))/86400000)} 天`;
+      toast.classList.add('show');
+      stackToasts();
     } else {
-      box.classList.remove('show');
-      // 解锁，立即按当前滚动位置决定是否隐藏
-      pinHeader = false;
-      const hdrH2 = document.getElementById('header').offsetHeight;
-      sticky.style.top = window.scrollY < hdrH2 ? '0' : `-${hdrH2}px`;
+      toast.classList.remove('show');
+      stackToasts();
     }
   }
   document.addEventListener('click', () => { if (sel.length > 0) { sel = []; refreshSel(); } });
@@ -1320,10 +1316,8 @@
   //  滚动隐藏标题栏
   // ════════════════════════════════════════
   let lastScrollY = 0;
-  let pinHeader   = false; // 选中日期区间时锁定标题栏显示
 
   window.addEventListener('scroll', () => {
-    if (pinHeader) return;
     const y        = window.scrollY;
     const sticky   = document.getElementById('sticky-top');
     const hdrH     = document.getElementById('header').offsetHeight;
@@ -1436,8 +1430,9 @@
     const toast = document.getElementById('year-toast');
     toast.textContent = `${y} 年`;
     toast.classList.add('show');
+    stackToasts();
     clearTimeout(yearToastTimer);
-    yearToastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+    yearToastTimer = setTimeout(() => { toast.classList.remove('show'); stackToasts(); }, 2000);
     yearTimer = setTimeout(() => {
       currentYear = y;
       document.getElementById('yr-label').textContent = y;
@@ -1446,7 +1441,7 @@
       sel = scrollTo ? [scrollTo] : [];
       render();
       renderSpecials();
-      if (scrollTo) { scrollToDate(scrollTo); refreshSel(); }
+      if (scrollTo) { scrollToDate(scrollTo); }
       cal.style.transition = 'opacity 0.25s';
       cal.style.opacity = '1';
     }, 280);
