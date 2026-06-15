@@ -340,6 +340,15 @@
       align-self: stretch;
     }
     .sp-sync:hover { filter: brightness(1.15); }
+    .sp-time-toggle {
+      background: none; border: 1px dashed var(--c-specials-br); border-radius: 3px;
+      padding: 1px 5px; font-size: 0.65rem; cursor: pointer; color: var(--c-accent);
+      font-family: inherit; white-space: nowrap; width: 100%;
+    }
+    .sp-time-toggle:hover { border-color: var(--c-accent); }
+    .sp-time-row { display: flex; gap: 3px; }
+    .sp-time-row .sp-finp { flex: 1; }
+    [data-theme="dark"] .sp-time-toggle { border-color: #3a4055; }
     /* ---- 右键弹出表单 ---- */
     .sp-popup-overlay {
       position: fixed; inset: 0; z-index: 999;
@@ -904,14 +913,26 @@
     });
 
     for (const s of sorted) {
-      const d = new Date(s.date); d.setHours(0,0,0,0);
-      const diff = Math.round((d - today) / 86400000);
-      if (hideExpired && diff < 0) continue;
-      let cntText, cntClass;
-      if      (diff === 0)          { cntText = '就是今天！'; cntClass = 'sp-cnt-today'; }
-      else if (diff > 0 && diff<=7) { cntText = `<span class="sp-label">还有</span><span class="sp-n">${diff}</span><span class="sp-label">天</span>`;  cntClass = 'sp-cnt-soon';   }
-      else if (diff > 7)            { cntText = `<span class="sp-label">还有</span><span class="sp-n">${diff}</span><span class="sp-label">天</span>`;  cntClass = 'sp-cnt-future'; }
-      else                          { cntText = `<span class="sp-label">已过</span><span class="sp-n">${-diff}</span><span class="sp-label">天</span>`; cntClass = 'sp-cnt-past';   }
+      const hasTime = !!s.time;
+      let diffInfo;
+      if (hasTime) {
+        const dt = new Date(s.date + 'T' + s.time);
+        const now = new Date();
+        const diffMs = dt - now;
+        const absMs = Math.abs(diffMs);
+        diffInfo = {
+          days: Math.floor(absMs / 86400000),
+          hours: Math.floor((absMs % 86400000) / 3600000),
+          mins: Math.floor((absMs % 3600000) / 60000),
+          secs: Math.floor((absMs % 60000) / 1000),
+          isFuture: diffMs >= 0,
+        };
+      } else {
+        const d = new Date(s.date); d.setHours(0,0,0,0);
+        const diff = Math.round((d - today) / 86400000);
+        diffInfo = { days: Math.abs(diff), hours: 0, mins: 0, secs: 0, isFuture: diff >= 0 };
+      }
+      if (hideExpired && !diffInfo.isFuture) continue;
 
       const card = document.createElement('div');
       card.className = 'sp-card';
@@ -924,10 +945,56 @@
         scrollToDate(s.date);
       });
       card.addEventListener('contextmenu', e => { e.preventDefault(); showEditForm(card, s); });
+
+      const cntText = (precise) => {
+        const d = diffInfo, label = d.isFuture ? '还有' : '已过';
+        if (hasTime && d.isFuture && d.days === 0 && d.hours === 0 && d.mins === 0) {
+          return { html: '就是现在！', cls: 'sp-cnt-today' };
+        }
+        if (!hasTime && d.days === 0) {
+          return { html: '就是今天！', cls: 'sp-cnt-today' };
+        }
+        let cls;
+        if (d.isFuture) cls = d.days > 7 ? 'sp-cnt-future' : 'sp-cnt-soon';
+        else cls = 'sp-cnt-past';
+        let html = `<span class="sp-label">${label}</span>`;
+        if (precise) {
+          if (d.days > 0) html += `<span class="sp-n">${d.days}</span><span class="sp-label">天</span>`;
+          if (d.days > 0 || d.hours > 0) html += `<span class="sp-n">${d.hours}</span><span class="sp-label">小时</span>`;
+          if (d.days > 0 || d.hours > 0 || d.mins > 0) html += `<span class="sp-n">${d.mins}</span><span class="sp-label">分</span>`;
+          html += `<span class="sp-n">${d.secs}</span><span class="sp-label">秒</span>`;
+        } else {
+          if (d.days > 0) {
+            html += `<span class="sp-n">${d.days}</span><span class="sp-label">天</span>`;
+            if (d.hours > 0) html += `<span class="sp-n">${d.hours}</span><span class="sp-label">小时</span>`;
+          } else if (d.hours > 0) {
+            html += `<span class="sp-n">${d.hours}</span><span class="sp-label">小时</span>`;
+          } else {
+            html += `<span class="sp-n">${d.mins}</span><span class="sp-label">分</span>`;
+          }
+        }
+        return { html, cls };
+      }
+
+      let precise = false;
+      const cntEl = document.createElement('span');
+      cntEl.className = 'sp-cnt ' + cntText(false).cls;
+      cntEl.innerHTML = cntText(false).html;
+      if (hasTime) {
+        cntEl.style.cursor = 'pointer';
+        cntEl.title = '点击切换时分秒';
+        cntEl.addEventListener('click', e => {
+          e.stopPropagation();
+          precise = !precise;
+          const r = cntText(precise);
+          cntEl.className = 'sp-cnt ' + r.cls;
+          cntEl.innerHTML = r.html;
+        });
+      }
+
       card.innerHTML =
         `<div class="sp-name">${escHtml(s.name)}</div>` +
-        `<div class="sp-date">${s.date}</div>` +
-        `<span class="sp-cnt ${cntClass}">${cntText}</span>` +
+        `<div class="sp-date">${s.date}${hasTime ? ' ' + s.time : ''}</div>` +
         `<button class="sp-del" title="删除">×</button>`;
       card.querySelector('.sp-del').addEventListener('click', e => {
         e.stopPropagation();
@@ -948,6 +1015,7 @@
         renderSpecials();
         showDeleteToast(s.name);
       });
+      card.insertBefore(cntEl, card.querySelector('.sp-del'));
       bar.appendChild(card);
       addTiltEffect(card);
     }
@@ -1035,16 +1103,30 @@
         setTimeout(() => { nameInp.style.outline = ''; nameInp.placeholder = '名称（如：生日）'; }, 1200);
         nameInp.focus(); nameInp.select(); return;
       }
-      specials.push({ id: Date.now().toString(), name, date });
+      specials.push({ id: Date.now().toString(), name, date, ...(timeRow.style.display !== 'none' && timeInp.value ? { time: timeInp.value } : {}) });
       persistAll();
       renderSpecials();
     });
     const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
     cancelBtn.addEventListener('click', () => renderSpecials());
 
+    const timeToggle = document.createElement('button');
+    timeToggle.className = 'sp-time-toggle'; timeToggle.type = 'button';
+    timeToggle.textContent = '+ 时分秒';
+    const timeInp = document.createElement('input');
+    timeInp.type = 'time'; timeInp.className = 'sp-finp'; timeInp.step = '1';
+    const timeRow = document.createElement('div'); timeRow.className = 'sp-time-row';
+    timeRow.style.display = 'none';
+    timeRow.appendChild(timeInp);
+    timeToggle.addEventListener('click', () => {
+      const sh = timeRow.style.display !== 'none';
+      timeRow.style.display = sh ? 'none' : '';
+      timeToggle.textContent = sh ? '+ 时分秒' : '− 时分秒';
+    });
+
     btnRow.append(okBtn, cancelBtn);
     const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
-    inpCol.append(nameInp, dateInp);
+    inpCol.append(nameInp, dateInp, timeToggle, timeRow);
     form.append(inpCol, btnRow);
     addBtn.replaceWith(form);
     nameInp.focus();
@@ -1080,7 +1162,7 @@
         setTimeout(() => { nameInp.style.outline = ''; nameInp.placeholder = '名称（如：生日）'; }, 1200);
         nameInp.focus(); nameInp.select(); return;
       }
-      specials.push({ id: Date.now().toString(), name, date });
+      specials.push({ id: Date.now().toString(), name, date, ...(timeRow.style.display !== 'none' && timeInp.value ? { time: timeInp.value } : {}) });
       persistAll();
       renderSpecials();
       wrap.remove();
@@ -1088,9 +1170,23 @@
     const cancelBtn = document.createElement('button'); cancelBtn.className = 'sp-cancel'; cancelBtn.textContent = '取消';
     cancelBtn.addEventListener('click', () => wrap.remove());
 
+    const timeToggle = document.createElement('button');
+    timeToggle.className = 'sp-time-toggle'; timeToggle.type = 'button';
+    timeToggle.textContent = '+ 时分秒';
+    const timeInp = document.createElement('input');
+    timeInp.type = 'time'; timeInp.className = 'sp-finp'; timeInp.step = '1';
+    const timeRow = document.createElement('div'); timeRow.className = 'sp-time-row';
+    timeRow.style.display = 'none';
+    timeRow.appendChild(timeInp);
+    timeToggle.addEventListener('click', () => {
+      const sh = timeRow.style.display !== 'none';
+      timeRow.style.display = sh ? 'none' : '';
+      timeToggle.textContent = sh ? '+ 时分秒' : '− 时分秒';
+    });
+
     btnRow.append(okBtn, cancelBtn);
     const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
-    inpCol.append(nameInp, dateInp);
+    inpCol.append(nameInp, dateInp, timeToggle, timeRow);
     form.append(inpCol, btnRow);
     wrap.appendChild(form);
     document.body.appendChild(wrap);
@@ -1128,7 +1224,7 @@
       const name = nameInp.value.trim(), date = dateInp.value;
       if (!name || !date) { nameInp.focus(); return; }
       const idx = specials.findIndex(x => x.id === s.id);
-      if (idx !== -1) specials[idx] = { ...specials[idx], name, date };
+      if (idx !== -1) specials[idx] = { ...specials[idx], name, date, ...(timeRow.style.display !== 'none' && timeInp.value ? { time: timeInp.value } : { time: undefined }) };
       persistAll();
       renderSpecials();
     });
@@ -1152,9 +1248,23 @@
       }, 1200);
     });
 
+    const timeToggle = document.createElement('button');
+    timeToggle.className = 'sp-time-toggle'; timeToggle.type = 'button';
+    const timeInp = document.createElement('input');
+    timeInp.type = 'time'; timeInp.className = 'sp-finp'; timeInp.step = '1';
+    const timeRow = document.createElement('div'); timeRow.className = 'sp-time-row';
+    if (s.time) { timeInp.value = s.time; timeRow.style.display = ''; timeToggle.textContent = '− 时分秒'; }
+    else { timeRow.style.display = 'none'; timeToggle.textContent = '+ 时分秒'; }
+    timeRow.appendChild(timeInp);
+    timeToggle.addEventListener('click', () => {
+      const sh = timeRow.style.display !== 'none';
+      timeRow.style.display = sh ? 'none' : '';
+      timeToggle.textContent = sh ? '+ 时分秒' : '− 时分秒';
+    });
+
     btnRow.append(okBtn, cancelBtn);
     const inpCol = document.createElement('div'); inpCol.className = 'sp-finp-col';
-    inpCol.append(nameInp, dateInp);
+    inpCol.append(nameInp, dateInp, timeToggle, timeRow);
     form.append(inpCol, btnRow, syncBtn);
     card.replaceWith(form);
     nameInp.focus(); nameInp.select();
