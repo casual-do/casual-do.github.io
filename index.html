@@ -498,6 +498,7 @@
       <button class="fb-btn" id="font-btn">字体</button>
     </div>
     <button class="fb-btn" id="expired-toggle-btn" title="显示/隐藏已过期特殊日期">往日</button>
+    <button class="fb-btn" id="sp-only-btn" title="仅展示特殊日期栏">仅日期</button>
     <div id="file-status"></div>
   </div>
 </div>
@@ -595,6 +596,7 @@
   let saveTimer  = null, indicatorTimer = null;
   let spCollapsed  = (localStorage.getItem('sp-collapsed')       ?? 'true')  === 'true';
   let hideExpired  = (localStorage.getItem('sp-hide-expired')    ?? 'false') === 'true';
+  let spOnlyMode   = (localStorage.getItem('sp-only-mode')      ?? 'false') === 'true';
   let pendingDelete = null;
 
   function escHtml(s) {
@@ -657,6 +659,11 @@
         hideExpired = !!data.hideExpired;
         localStorage.setItem('sp-hide-expired', hideExpired);
       }
+      if (data.spOnlyMode !== undefined) {
+        spOnlyMode = !!data.spOnlyMode;
+        localStorage.setItem('sp-only-mode', spOnlyMode);
+        applySpOnlyMode();
+      }
       applyFontStyle();
       // 同步字体选择器高亮
       const fpPanel = document.getElementById('font-picker-panel');
@@ -685,7 +692,7 @@
     const theme  = document.documentElement.getAttribute('data-theme') || 'ocean';
     const fontCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
     const fontEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
-    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN, hideExpired }, null, 2));
+    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN, hideExpired, spOnlyMode }, null, 2));
     await writable.close();
   }
 
@@ -785,6 +792,7 @@
     initThemePicker();
     initFontPicker();
     initExpiredToggle();
+    initSpOnlyToggle();
     initSpecialsBarGlow();
 
     // ════════════════════════════════════════
@@ -1039,6 +1047,7 @@
     const bar  = document.getElementById('specials-bar');
     const wrap = document.getElementById('specials-wrap');
     if (!bar || !wrap) return;
+    if (spOnlyMode) { bar.style.maxHeight = 'none'; return; }
 
     bar.querySelectorAll('.sp-toggle-btn').forEach(el => el.remove());
     bar.style.maxHeight = '';
@@ -1564,6 +1573,29 @@
     document.documentElement.setAttribute('data-theme', saved);
   })();
 
+  function applySpOnlyMode() {
+    const cal = document.getElementById('calendar');
+    const btn = document.getElementById('sp-only-btn');
+    if (!cal || !btn) return;
+    cal.style.display = spOnlyMode ? 'none' : '';
+    btn.classList.toggle('primary', spOnlyMode);
+    btn.textContent = spOnlyMode ? '完整' : '仅日期';
+    applySpCollapse();
+  }
+
+  function initSpOnlyToggle() {
+    const btn = document.getElementById('sp-only-btn');
+    if (!btn) return;
+    applySpOnlyMode();
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      spOnlyMode = !spOnlyMode;
+      localStorage.setItem('sp-only-mode', spOnlyMode);
+      applySpOnlyMode();
+      renderSpecials();
+    });
+  }
+
   function initExpiredToggle() {
     const btn = document.getElementById('expired-toggle-btn');
     const update = () => {
@@ -1583,6 +1615,23 @@
 
   function initSpecialsBarGlow() {
     const bar = document.getElementById('specials-bar');
+    bar.style.background = '';
+    bar.style.position = 'relative';
+    bar.style.zIndex = '0';
+
+    const styleId = '_sp-glow-style';
+    if (!document.getElementById(styleId)) {
+      const s = document.createElement('style');
+      s.id = styleId;
+      s.textContent =
+        `#specials-bar::before,#specials-bar::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;transition:opacity .3s}` +
+        `#specials-bar::before{opacity:var(--eg-op,1);background:radial-gradient(ellipse farthest-corner at 50% 50%,` +
+        `transparent 35%,color-mix(in srgb,var(--c-accent) 15%,transparent) 100%),var(--c-specials-bg)}` +
+        `#specials-bar::after{opacity:var(--cg-op,0);background:radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),` +
+        `color-mix(in srgb,var(--c-accent) 20%,transparent) 0%,transparent 50%)}`;
+      document.head.appendChild(s);
+    }
+
     let frame;
     bar.addEventListener('mousemove', e => {
       cancelAnimationFrame(frame);
@@ -1590,14 +1639,16 @@
         const rect = bar.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
         const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-        bar.style.background =
-          `radial-gradient(circle at ${x}% ${y}%, color-mix(in srgb, var(--c-accent) 18%, transparent) 0%, transparent 60%),` +
-          `var(--c-specials-bg)`;
+        bar.style.setProperty('--glow-x', x + '%');
+        bar.style.setProperty('--glow-y', y + '%');
+        bar.style.setProperty('--eg-op', '0');
+        bar.style.setProperty('--cg-op', '1');
       });
     });
     bar.addEventListener('mouseleave', () => {
       cancelAnimationFrame(frame);
-      bar.style.background = '';
+      bar.style.setProperty('--eg-op', '1');
+      bar.style.setProperty('--cg-op', '0');
     });
   }
 
