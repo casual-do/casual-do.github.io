@@ -498,7 +498,7 @@
       <button class="fb-btn" id="font-btn">字体</button>
     </div>
     <button class="fb-btn" id="expired-toggle-btn" title="显示/隐藏已过期特殊日期">往日</button>
-    <button class="fb-btn" id="sp-only-btn" title="仅展示特殊日期栏">仅日期</button>
+    <button class="fb-btn" id="sp-only-btn" title="仅展示特殊日期栏">完整</button>
     <div id="file-status"></div>
   </div>
 </div>
@@ -1579,8 +1579,10 @@
     if (!cal || !btn) return;
     cal.style.display = spOnlyMode ? 'none' : '';
     btn.classList.toggle('primary', spOnlyMode);
-    btn.textContent = spOnlyMode ? '完整' : '仅日期';
+    btn.textContent = spOnlyMode ? '简易' : '完整';
     applySpCollapse();
+    renderSpecials();
+    persistAll();
   }
 
   function initSpOnlyToggle() {
@@ -1593,6 +1595,7 @@
       localStorage.setItem('sp-only-mode', spOnlyMode);
       applySpOnlyMode();
       renderSpecials();
+      persistAll();
     });
   }
 
@@ -1625,8 +1628,12 @@
       s.id = styleId;
       s.textContent =
         `#specials-bar::before,#specials-bar::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;transition:opacity .3s}` +
-        `#specials-bar::before{opacity:var(--eg-op,1);background:radial-gradient(ellipse farthest-corner at 50% 50%,` +
-        `transparent 35%,color-mix(in srgb,var(--c-accent) 15%,transparent) 100%),var(--c-specials-bg)}` +
+        `#specials-bar::before{opacity:var(--eg-op,1);background:` +
+        `radial-gradient(circle at 0% 0%,color-mix(in srgb,var(--c-accent) 6%,transparent) 0%,transparent 55%),` +
+        `radial-gradient(circle at 100% 0%,color-mix(in srgb,var(--c-accent) 6%,transparent) 0%,transparent 55%),` +
+        `radial-gradient(circle at 0% 100%,color-mix(in srgb,var(--c-accent) 6%,transparent) 0%,transparent 55%),` +
+        `radial-gradient(circle at 100% 100%,color-mix(in srgb,var(--c-accent) 6%,transparent) 0%,transparent 55%),` +
+        `var(--c-specials-bg)}` +
         `#specials-bar::after{opacity:var(--cg-op,0);background:radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),` +
         `color-mix(in srgb,var(--c-accent) 20%,transparent) 0%,transparent 50%)}`;
       document.head.appendChild(s);
