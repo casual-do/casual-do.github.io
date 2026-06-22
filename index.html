@@ -148,6 +148,104 @@
     }
     /* 标题栏左侧标题 */
     #header h1 { font-size: 0.95rem; font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
+    /* ---- 天气栏 ---- */
+    #weather-bar {
+      display: none;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(20px) saturate(1.6);
+      -webkit-backdrop-filter: blur(20px) saturate(1.6);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      color: var(--c-text);
+      padding: 4px 14px;
+    }
+    #weather-bar.show { display: flex; }
+    #weather-bar.loading,
+    #weather-bar.empty,
+    #weather-bar.error {
+      justify-content: center;
+      align-items: center;
+      font-size: 0.72rem;
+      opacity: 0.7;
+      padding: 6px 14px;
+    }
+    #weather-bar .wx-list {
+      display: flex;
+      flex: 1;
+      gap: 2px;
+      overflow: hidden;
+    }
+    .wx-day {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 3px 4px;
+      border-radius: 5px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background 0.2s;
+    }
+    .wx-day:hover { background: rgba(0,0,0,0.05); }
+    [data-theme="dark"] .wx-day:hover { background: rgba(255,255,255,0.06); }
+    .wx-day.today { background: color-mix(in srgb, var(--c-accent) 18%, transparent); font-weight: 600; }
+    .wx-day .wx-dow { opacity: 0.7; }
+    .wx-day .wx-icon { font-size: 0.95rem; line-height: 1; }
+    .wx-day .wx-tmp { font-variant-numeric: tabular-nums; }
+    .wx-day .wx-hi { color: var(--c-today); }
+    .wx-day .wx-lo { opacity: 0.6; }
+    #wx-city {
+      flex-shrink: 0;
+      font-size: 0.7rem;
+      opacity: 0.65;
+      padding-right: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #wx-city:hover { opacity: 1; }
+    /* 天气城市输入弹窗 */
+    .wx-popup {
+      position: fixed;
+      z-index: 500;
+      background: var(--c-card-bg);
+      border: 1px solid var(--c-specials-br);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 200px;
+    }
+    .wx-popup input {
+      font-family: inherit;
+      font-size: 0.8rem;
+      padding: 6px 8px;
+      border: 1px solid var(--c-specials-br);
+      border-radius: 5px;
+      background: var(--c-body-bg);
+      color: var(--c-text);
+      outline: none;
+    }
+    .wx-popup input:focus { border-color: var(--c-accent); }
+    .wx-popup .wx-popup-row { display: flex; gap: 6px; }
+    .wx-popup button {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: var(--c-specials-bg);
+      color: var(--c-text);
+    }
+    .wx-popup button.primary { background: var(--c-accent); color: #fff; }
+    .wx-popup button:hover { filter: brightness(0.95); }
+    .wx-popup .wx-popup-tip { font-size: 0.68rem; opacity: 0.55; }
     /* ---- 年份切换导航 ---- */
     #year-nav {
       display: flex; align-items: center; gap: 2px;
@@ -214,7 +312,7 @@
     }
     #specials-wrap {                  /* 特殊日期栏粘性容器 */
       position: sticky;
-      top: 0;
+      top: var(--weather-height, 0px);
       z-index: 150;
     }
     .sp-toggle-btn {                  /* 折叠展开切换按钮 */
@@ -226,7 +324,7 @@
     .sp-toggle-btn:hover { opacity: 0.9; }
     .sp-card {                        /* 特殊日期卡片（新拟态） */
       position: relative;
-      background: var(--c-specials-bg);
+      background: color-mix(in srgb, var(--c-specials-bg) 10%, transparent); /* 卡片背景  加大透明效果*/
       border-radius: 10px;
       padding: 6px 10px;
       min-width: 60px; /* 特殊日期卡片最小宽度 */
@@ -499,8 +597,10 @@
     </div>
     <button class="fb-btn" id="expired-toggle-btn" title="显示/隐藏已过期特殊日期">往日</button>
     <button class="fb-btn" id="sp-only-btn" title="仅展示特殊日期栏">完整</button>
+    <button class="fb-btn" id="weather-btn" title="设置天气城市">天气</button>
     <div id="file-status"></div>
   </div>
+  <div id="weather-bar"></div>
 </div>
 <div id="specials-wrap"><div id="specials-bar"></div></div>
 <div id="calendar"></div>
@@ -597,6 +697,7 @@
   let spCollapsed  = (localStorage.getItem('sp-collapsed')       ?? 'true')  === 'true';
   let hideExpired  = (localStorage.getItem('sp-hide-expired')    ?? 'false') === 'true';
   let spOnlyMode   = (localStorage.getItem('sp-only-mode')      ?? 'false') === 'true';
+  let weatherCity  = JSON.parse(localStorage.getItem('cal-weather-city') || 'null'); // {name, lat, lon}
   let pendingDelete = null;
 
   function escHtml(s) {
@@ -664,6 +765,13 @@
         localStorage.setItem('sp-only-mode', spOnlyMode);
         applySpOnlyMode();
       }
+      if (data.weatherCity !== undefined) {
+        weatherCity = data.weatherCity;
+        if (weatherCity) localStorage.setItem('cal-weather-city', JSON.stringify(weatherCity));
+        else localStorage.removeItem('cal-weather-city');
+        if (weatherCity) loadWeather();
+        else document.getElementById('weather-bar')?.classList.remove('show');
+      }
       applyFontStyle();
       // 同步字体选择器高亮
       const fpPanel = document.getElementById('font-picker-panel');
@@ -692,7 +800,7 @@
     const theme  = document.documentElement.getAttribute('data-theme') || 'ocean';
     const fontCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
     const fontEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
-    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN, hideExpired, spOnlyMode }, null, 2));
+    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN, hideExpired, spOnlyMode, weatherCity }, null, 2));
     await writable.close();
   }
 
@@ -773,6 +881,205 @@
   }
 
   // ════════════════════════════════════════
+  //  天气（Open-Meteo）
+  // ════════════════════════════════════════
+  const WX_CODE = {
+    0:  ['☀',  '晴'],
+    1:  ['🌤', '少云'], 2: ['⛅', '多云'], 3: ['☁',  '阴'],
+    45: ['🌫', '雾'],   48:['🌫', '雾凇'],
+    51: ['🌦', '毛毛雨'], 53:['🌦', '小雨'], 55:['🌧', '中雨'],
+    56: ['🌧', '冻雨'], 57:['🌧', '冻雨'],
+    61: ['🌧', '小雨'], 63:['🌧', '中雨'], 65:['🌧', '大雨'],
+    66: ['🌧', '冻雨'], 67:['🌧', '冻雨'],
+    71: ['🌨', '小雪'], 73:['🌨', '中雪'], 75:['❄',  '大雪'],
+    77: ['❄',  '雪粒'],
+    80: ['🌦', '阵雨'], 81:['🌧', '阵雨'], 82:['⛈', '强阵雨'],
+    85: ['🌨', '阵雪'], 86:['🌨', '强阵雪'],
+    95: ['⛈', '雷雨'], 96:['⛈', '雷雨冰雹'], 99:['⛈', '强雷雨'],
+  };
+  function wxIcon(code) { return (WX_CODE[code] || ['•','未知'])[0]; }
+  function wxText(code) { return (WX_CODE[code] || ['•','未知'])[1]; }
+
+  async function searchCity(name) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=zh`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('geocoding failed');
+    const j = await r.json();
+    if (!j.results || !j.results.length) throw new Error('未找到该城市');
+    const c = j.results[0];
+    return { name: c.name + (c.admin1 && c.admin1 !== c.name ? ' · ' + c.admin1 : ''), lat: c.latitude, lon: c.longitude };
+  }
+
+  async function fetchForecast(lat, lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+                `&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=auto`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('forecast failed');
+    return r.json();
+  }
+
+  async function loadWeather(force = false) {
+    const bar = document.getElementById('weather-bar');
+    if (!weatherCity) {
+      bar.classList.remove('show');
+      document.documentElement.style.setProperty('--weather-height', '0px');
+      return;
+    }
+    bar.classList.add('show');
+
+    const cacheKey = `cal-weather-cache-${weatherCity.lat}-${weatherCity.lon}`;
+    const TTL = 60 * 60 * 1000; // 1h
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch(e) {}
+    if (!force && cached && Date.now() - cached.t < TTL) {
+      renderWeather(cached.data);
+      return;
+    }
+    bar.classList.add('loading');
+    bar.classList.remove('error', 'empty');
+    bar.innerHTML = '加载中…';
+    try {
+      const data = await fetchForecast(weatherCity.lat, weatherCity.lon);
+      localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), data }));
+      renderWeather(data);
+    } catch(e) {
+      bar.classList.remove('loading');
+      bar.classList.add('error');
+      bar.innerHTML = `天气加载失败 · <span style="text-decoration:underline;cursor:pointer" id="wx-retry">重试</span>`;
+      document.getElementById('wx-retry')?.addEventListener('click', () => loadWeather(true));
+    }
+  }
+
+  function renderWeather(data) {
+    const bar = document.getElementById('weather-bar');
+    bar.classList.remove('loading', 'error', 'empty');
+    bar.innerHTML = '';
+    const cityEl = document.createElement('span');
+    cityEl.id = 'wx-city';
+    cityEl.textContent = '📍 ' + weatherCity.name;
+    cityEl.title = '点击修改城市';
+    cityEl.addEventListener('click', e => { e.stopPropagation(); showCityPopup(e); });
+    bar.appendChild(cityEl);
+
+    const list = document.createElement('div');
+    list.className = 'wx-list';
+    const d = data.daily;
+    const todayStr = new Date().toISOString().slice(0,10);
+    for (let i = 0; i < d.time.length; i++) {
+      const date = d.time[i];
+      const code = d.weather_code[i];
+      const hi   = Math.round(d.temperature_2m_max[i]);
+      const lo   = Math.round(d.temperature_2m_min[i]);
+      const jsd  = new Date(date + 'T00:00');
+      const dow  = i === 0 ? '今' : DOW_CN[jsd.getDay()];
+
+      const day = document.createElement('div');
+      day.className = 'wx-day' + (date === todayStr ? ' today' : '');
+      day.title = `${date} ${wxText(code)}  ${lo}° ~ ${hi}°`;
+      day.innerHTML =
+        `<span class="wx-dow">${dow}</span>` +
+        `<span class="wx-icon">${wxIcon(code)}</span>` +
+        `<span class="wx-tmp"><span class="wx-hi">${hi}°</span><span class="wx-lo">/${lo}°</span></span>`;
+      day.addEventListener('click', e => {
+        e.stopPropagation();
+        const dateYear = parseInt(date.slice(0, 4));
+        if (dateYear !== currentYear) { setYear(dateYear, date); return; }
+        sel = [date]; refreshSel(); scrollToDate(date);
+      });
+      day.style.cursor = 'pointer';
+      list.appendChild(day);
+    }
+    bar.appendChild(list);
+    requestAnimationFrame(() => {
+      document.documentElement.style.setProperty('--weather-height', bar.offsetHeight + 'px');
+    });
+  }
+
+  function showCityPopup(e) {
+    document.querySelector('.wx-popup')?.remove();
+    const pop = document.createElement('div');
+    pop.className = 'wx-popup';
+    pop.addEventListener('click', ev => ev.stopPropagation());
+
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = '城市名（如 北京 / Shanghai）';
+    inp.value = weatherCity?.name?.split(' · ')[0] || '';
+    pop.appendChild(inp);
+
+    const tip = document.createElement('div');
+    tip.className = 'wx-popup-tip';
+    pop.appendChild(tip);
+
+    const row = document.createElement('div');
+    row.className = 'wx-popup-row';
+    const okBtn = document.createElement('button');
+    okBtn.className = 'primary'; okBtn.textContent = '确定';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '取消';
+    row.append(okBtn, cancelBtn);
+
+    if (weatherCity) {
+      const clearBtn = document.createElement('button');
+      clearBtn.textContent = '关闭天气';
+      clearBtn.addEventListener('click', () => {
+        weatherCity = null;
+        localStorage.removeItem('cal-weather-city');
+        document.getElementById('weather-bar').classList.remove('show');
+        document.documentElement.style.setProperty('--weather-height', '0px');
+        persistAll();
+        pop.remove();
+      });
+      pop.appendChild(clearBtn);
+    }
+    pop.appendChild(row);
+
+    cancelBtn.addEventListener('click', () => pop.remove());
+    okBtn.addEventListener('click', async () => {
+      const name = inp.value.trim();
+      if (!name) { inp.focus(); return; }
+      tip.textContent = '搜索中…';
+      okBtn.disabled = true;
+      try {
+        const city = await searchCity(name);
+        weatherCity = city;
+        localStorage.setItem('cal-weather-city', JSON.stringify(city));
+        persistAll();
+        pop.remove();
+        await loadWeather(true);
+      } catch(err) {
+        tip.textContent = err.message || '搜索失败';
+        okBtn.disabled = false;
+      }
+    });
+    inp.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') okBtn.click();
+      if (ev.key === 'Escape') pop.remove();
+    });
+
+    document.body.appendChild(pop);
+    const pw = 240, ph = 130;
+    let x = e.clientX, y = e.clientY + 8;
+    if (x + pw > window.innerWidth)  x = window.innerWidth  - pw - 12;
+    if (y + ph > window.innerHeight) y = window.innerHeight - ph - 12;
+    pop.style.left = x + 'px';
+    pop.style.top  = y + 'px';
+
+    inp.focus(); inp.select();
+
+    const close = ev => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('click', close); } };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  }
+
+  function initWeather() {
+    document.getElementById('weather-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      showCityPopup(e);
+    });
+    if (weatherCity) loadWeather();
+  }
+
+  // ════════════════════════════════════════
   //  初始化
   // ════════════════════════════════════════
   async function init() {
@@ -794,6 +1101,7 @@
     initExpiredToggle();
     initSpOnlyToggle();
     initSpecialsBarGlow();
+    initWeather();
 
     // ════════════════════════════════════════
     //  文件系统访问 —— 异步恢复，不影响首次渲染
