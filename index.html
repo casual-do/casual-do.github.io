@@ -81,6 +81,150 @@
       --c-accent-dk:   #4a5c6b;
       --c-sat:         #596d7e;
     }
+    /* ---- 玫瑰主题 ---- */
+    [data-theme="rose"] {
+      --c-body-bg:     #f6eef1;
+      --c-header-bg:   #401828;
+      --c-specials-bg: #f2e2e8;
+      --c-specials-br: #e2c5d0;
+      --c-mtitle-from: rgba(180,58,102,0.18);
+      --c-mtitle-to:   rgba(210,78,128,0.18);
+      --c-accent:      #d6336c;
+      --c-accent-dk:   #b8225a;
+      --c-sat:         #d6336c;
+      --c-sel:         #e83e8c;
+    }
+    /* ---- 薄荷主题 ---- */
+    [data-theme="mint"] {
+      --c-body-bg:     #ecf5f1;
+      --c-header-bg:   #124036;
+      --c-specials-bg: #dcefe7;
+      --c-specials-br: #bcdcd0;
+      --c-mtitle-from: rgba(30,120,100,0.18);
+      --c-mtitle-to:   rgba(50,150,130,0.18);
+      --c-accent:      #16a085;
+      --c-accent-dk:   #128a72;
+      --c-sat:         #16a085;
+    }
+    /* ---- 青碧主题 ---- */
+    [data-theme="cyan"] {
+      --c-body-bg:     #eaf3f5;
+      --c-header-bg:   #0e2f3a;
+      --c-specials-bg: #d8e9ee;
+      --c-specials-br: #bad4dc;
+      --c-mtitle-from: rgba(20,100,124,0.18);
+      --c-mtitle-to:   rgba(40,130,158,0.18);
+      --c-accent:      #0891b2;
+      --c-accent-dk:   #06758f;
+      --c-sat:         #0891b2;
+    }
+    /* ---- 琥珀主题 ---- */
+    [data-theme="amber"] {
+      --c-body-bg:     #f6f1e6;
+      --c-header-bg:   #3d2c0a;
+      --c-specials-bg: #f0e8d3;
+      --c-specials-br: #dccfa8;
+      --c-mtitle-from: rgba(148,108,20,0.18);
+      --c-mtitle-to:   rgba(178,140,44,0.18);
+      --c-accent:      #b7791f;
+      --c-accent-dk:   #9c6519;
+      --c-sat:         #b7791f;
+      --c-sel:         #d69e2e;
+    }
+    /* ---- 靛青主题 ---- */
+    [data-theme="indigo"] {
+      --c-body-bg:     #edeef6;
+      --c-header-bg:   #1a1e40;
+      --c-specials-bg: #dfe1ee;
+      --c-specials-br: #c3c6dd;
+      --c-mtitle-from: rgba(52,60,140,0.18);
+      --c-mtitle-to:   rgba(78,86,168,0.18);
+      --c-accent:      #4c51bf;
+      --c-accent-dk:   #3f45a3;
+      --c-sat:         #4c51bf;
+    }
+    /* ---- 黑白主题（高对比） ---- */
+    [data-theme="mono"] {
+      --c-body-bg:     #ffffff;
+      --c-header-bg:   #000000;
+      --c-specials-bg: #ffffff;
+      --c-specials-br: #000000;
+      --c-mtitle-from: rgba(0,0,0,0.85);
+      --c-mtitle-to:   rgba(0,0,0,0.85);
+      --c-accent:      #000000;
+      --c-accent-dk:   #000000;
+      --c-today:       #000000;
+      --c-sel:         #000000;
+      --c-sat:         #000000;
+      --c-sun:         #000000;
+      --c-text:        #000000;
+      --c-card-bg:     #ffffff;
+      --c-row-br:      #000000;
+      --c-row-hover:   #f0f0f0;
+      --c-input-focus: #ffffff;
+      --c-input-color: #000000;
+      --nm-light:      #ffffff;
+      --nm-dark:       #000000;
+    }
+    /* ---- 黑白主题额外覆盖 ---- */
+    [data-theme="mono"] #header { background: #000; color: #fff; }
+    [data-theme="mono"] #header h1 { color: #fff; }
+    [data-theme="mono"] #year-nav { background: rgba(255,255,255,0.14); }
+    [data-theme="mono"] .yr-btn { color: #fff; }
+    [data-theme="mono"] .fb-btn { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.35); }
+    [data-theme="mono"] .fb-btn.primary { background: #fff; color: #000; border-color: #fff; }
+    [data-theme="mono"] .sp-card { box-shadow: 2px 2px 0 #000; }
+    [data-theme="mono"] .sp-cnt-future,
+    [data-theme="mono"] .sp-cnt-soon,
+    [data-theme="mono"] .sp-cnt-today,
+    [data-theme="mono"] .sp-cnt-past { background: #fff; color: #000; border: 1px solid #000; }
+    [data-theme="mono"] .sp-date { color: #000; }
+    [data-theme="mono"] .sp-today-mday,
+    [data-theme="mono"] .sp-today-lunar { color: #000; }
+    [data-theme="mono"] .m-title { color: #fff; }
+    [data-theme="mono"] .m-title.m-cur { background: #fff; color: #000; }
+
+    /* ---- 白黑主题（黑白反转，高对比） ---- */
+    [data-theme="mono-inv"] {
+      --c-body-bg:     #000000;
+      --c-header-bg:   #ffffff;
+      --c-specials-bg: #000000;
+      --c-specials-br: #ffffff;
+      --c-mtitle-from: rgba(255,255,255,0.85);
+      --c-mtitle-to:   rgba(255,255,255,0.85);
+      --c-accent:      #ffffff;
+      --c-accent-dk:   #ffffff;
+      --c-today:       #ffffff;
+      --c-sel:         #ffffff;
+      --c-sat:         #ffffff;
+      --c-sun:         #ffffff;
+      --c-text:        #ffffff;
+      --c-card-bg:     #000000;
+      --c-row-br:      #ffffff;
+      --c-row-hover:   #1a1a1a;
+      --c-input-focus: #000000;
+      --c-input-color: #ffffff;
+      --nm-light:      #000000;
+      --nm-dark:       #ffffff;
+    }
+    /* ---- 白黑主题额外覆盖 ---- */
+    [data-theme="mono-inv"] #header { background: #fff; color: #000; }
+    [data-theme="mono-inv"] #header h1 { color: #000; }
+    [data-theme="mono-inv"] #year-nav { background: rgba(0,0,0,0.14); }
+    [data-theme="mono-inv"] .yr-btn { color: #000; }
+    [data-theme="mono-inv"] .fb-btn { background: rgba(0,0,0,0.12); color: #000; border-color: rgba(0,0,0,0.35); }
+    [data-theme="mono-inv"] .fb-btn.primary { background: #000; color: #fff; border-color: #000; }
+    [data-theme="mono-inv"] .sp-card { box-shadow: 2px 2px 0 #fff; }
+    [data-theme="mono-inv"] .sp-cnt-future,
+    [data-theme="mono-inv"] .sp-cnt-soon,
+    [data-theme="mono-inv"] .sp-cnt-today,
+    [data-theme="mono-inv"] .sp-cnt-past { background: #000; color: #fff; border: 1px solid #fff; }
+    [data-theme="mono-inv"] .sp-date { color: #fff; }
+    [data-theme="mono-inv"] .sp-today-mday,
+    [data-theme="mono-inv"] .sp-today-lunar { color: #fff; }
+    [data-theme="mono-inv"] .m-title { color: #000; }
+    [data-theme="mono-inv"] .m-title.m-cur { background: #000; color: #fff; }
+
     /* ---- 暗夜主题 ---- */
     [data-theme="dark"] {
       --c-body-bg:     #12141a;
@@ -152,8 +296,8 @@
     #weather-bar {
       display: none;
       background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(20px) saturate(1.6);
-      -webkit-backdrop-filter: blur(20px) saturate(1.6);
+      backdrop-filter: blur(3px) saturate(1.6); /* 模糊背景 */
+      -webkit-backdrop-filter: blur(3px) saturate(1.6); /* 模糊背景-webkit  saturate(1.6) 作用：饱和度 */
       border-top: 1px solid rgba(255,255,255,0.08);
       color: var(--c-text);
       padding: 4px 14px;
@@ -191,7 +335,7 @@
     }
     .wx-day:hover { background: rgba(0,0,0,0.05); }
     [data-theme="dark"] .wx-day:hover { background: rgba(255,255,255,0.06); }
-    .wx-day.today { background: color-mix(in srgb, var(--c-accent) 18%, transparent); font-weight: 600; }
+    .wx-day.today { background: color-mix(in srgb, var(--c-accent) 10%, transparent); font-weight: 600; }/* 今日 : 浅蓝强调色 */
     .wx-day .wx-dow { opacity: 0.7; }
     .wx-day .wx-icon { font-size: 0.95rem; line-height: 1; }
     .wx-day .wx-tmp { font-variant-numeric: tabular-nums; }
@@ -325,11 +469,15 @@
     .sp-card {                        /* 特殊日期卡片（新拟态） */
       position: relative;
       background: color-mix(in srgb, var(--c-specials-bg) 10%, transparent); /* 卡片背景  加大透明效果*/
+      border: 1px solid transparent;
       border-radius: 10px;
       padding: 6px 10px;
       min-width: 60px; /* 特殊日期卡片最小宽度 */
       box-shadow: 3px 2px 7px var(--nm-dark), -4px -5px 10px var(--nm-light);
       will-change: transform;
+    }
+    body.sp-borders .sp-card {         /* 主题色边框（开关控制） */
+      border-color: color-mix(in srgb, var(--c-accent) 55%, transparent);
     }
     .sp-card:hover {                  /* 悬停发光 */
       box-shadow: 0 0 10px var(--c-accent), 4px 10px 18px var(--nm-dark), -4px -2px 8px var(--nm-light);
@@ -366,15 +514,15 @@
     /* ---- 删除撤销 Toast ---- */
     #delete-toast {
       position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-      background: color-mix(in srgb, var(--c-card-bg) 5%, transparent);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      background: color-mix(in srgb, var(--c-card-bg) 5%, transparent); /* 卡片背景  加大透明效果*/
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); /* 模糊背景 */
       color: var(--c-text); padding: 12px 22px;
       border-radius: 12px; font-size: 0.92rem;
       box-shadow: 0 4px 24px rgba(0,0,0,0.12);
       display: flex; align-items: center; gap: 16px;
-      z-index: 9999; pointer-events: none; opacity: 0;
+      z-index: 9999; pointer-events: none; opacity: 0; /* 初始状态透明度为0 */
       border: 1px solid color-mix(in srgb, var(--c-specials-br) 60%, transparent);
-      transition: opacity 0.25s, transform 0.25s;
+      transition: opacity 0.25s, transform 0.25s; /* 透明度和变换过渡 */
       transform: translateX(-50%) translateY(8px);
       white-space: nowrap;
     }
@@ -572,6 +720,57 @@
     }
     .fp-opt:hover:not(.active) { border-color: var(--c-accent); color: var(--c-accent); }
     .fp-opt.active { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }  /* 当前选中字体 */
+    /* ── 工具栏隐藏面板 ── */
+    #tb-hide-wrap { position: relative; display: flex; align-items: center; }
+    #tb-hide-panel {
+      position: fixed;
+      background: color-mix(in srgb, var(--c-card-bg) 92%, transparent);
+      backdrop-filter: blur(24px) saturate(1.6);
+      -webkit-backdrop-filter: blur(24px) saturate(1.6);
+      border: 1px solid color-mix(in srgb, var(--c-specials-br) 70%, transparent);
+      border-radius: 10px; padding: 8px 6px;
+      box-shadow: 0 10px 32px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08);
+      z-index: 300;
+      display: none; flex-direction: column; min-width: 168px;
+      opacity: 0; transform: translateY(-6px) scale(0.98);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    #tb-hide-panel.open { display: flex; opacity: 1; transform: translateY(0) scale(1); }
+    .tb-hide-title {
+      font-size: 0.66rem; font-weight: 700; letter-spacing: 0.8px;
+      color: color-mix(in srgb, var(--c-text) 55%, transparent);
+      padding: 4px 10px 6px; text-transform: uppercase;
+      border-bottom: 1px solid color-mix(in srgb, var(--c-specials-br) 60%, transparent);
+      margin-bottom: 4px;
+    }
+    .tb-hide-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      font-size: 0.78rem; color: var(--c-text);
+      cursor: pointer; user-select: none;
+      padding: 6px 10px; border-radius: 6px;
+      transition: background 0.12s;
+    }
+    .tb-hide-row:hover { background: color-mix(in srgb, var(--c-accent) 12%, transparent); }
+    .tb-hide-row input { display: none; }
+    .tb-hide-sw {                                       /* 迷你开关 */
+      width: 26px; height: 14px; border-radius: 8px; flex-shrink: 0;
+      background: color-mix(in srgb, var(--c-text) 22%, transparent);
+      position: relative; transition: background 0.18s;
+    }
+    .tb-hide-sw::after {
+      content: ''; position: absolute; top: 1px; left: 1px;
+      width: 12px; height: 12px; border-radius: 50%; background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+      transition: transform 0.18s;
+    }
+    .tb-hide-row input:checked ~ .tb-hide-sw { background: var(--c-accent); }
+    .tb-hide-row input:checked ~ .tb-hide-sw::after { transform: translateX(12px); }
+    .tb-hide-label { flex: 1; }
+    [data-theme="dark"]     #tb-hide-panel { background: rgba(24,27,36,0.92); }
+    [data-theme="mono"]     #tb-hide-panel { background: #fff; border-color: #000; }
+    [data-theme="mono-inv"] #tb-hide-panel { background: #000; border-color: #fff; }
+    [data-theme="mono-inv"] .tb-hide-title { color: #fff; }
+    .tb-hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -584,21 +783,33 @@
       <button class="yr-btn" id="yr-next">&#8250;</button>
     </div>
     <h1 id="cal-title">日历记事本</h1>
-    <div id="theme-picker">
+    <div id="theme-picker" data-hide-key="theme" data-hide-label="主题色">
       <button class="t-dot" data-theme="ocean"    style="background:#2980b9" title="深海"></button>
       <button class="t-dot" data-theme="forest"   style="background:#27ae60" title="森林"></button>
       <button class="t-dot" data-theme="twilight" style="background:#8e44ad" title="暮光"></button>
       <button class="t-dot" data-theme="warm"     style="background:#d35400" title="暖阳"></button>
+      <button class="t-dot" data-theme="rose"     style="background:#d6336c" title="玫瑰"></button>
+      <button class="t-dot" data-theme="mint"     style="background:#16a085" title="薄荷"></button>
+      <button class="t-dot" data-theme="cyan"     style="background:#0891b2" title="青碧"></button>
+      <button class="t-dot" data-theme="amber"    style="background:#b7791f" title="琥珀"></button>
+      <button class="t-dot" data-theme="indigo"   style="background:#4c51bf" title="靛青"></button>
       <button class="t-dot" data-theme="graphite" style="background:#596d7e" title="石墨"></button>
+      <button class="t-dot" data-theme="mono"     style="background:linear-gradient(135deg,#fff 0 50%,#000 50% 100%);border-color:#000" title="黑白"></button>
+      <button class="t-dot" data-theme="mono-inv" style="background:linear-gradient(135deg,#000 0 50%,#fff 50% 100%);border-color:#000" title="白黑"></button>
       <button class="t-dot" data-theme="dark"     style="background:#1c1f2b;border-color:rgba(255,255,255,0.2)" title="暗夜"></button>
     </div>
-    <div id="font-picker-wrap">
+    <div id="font-picker-wrap" data-hide-key="font" data-hide-label="字体">
       <button class="fb-btn" id="font-btn">字体</button>
     </div>
-    <button class="fb-btn" id="expired-toggle-btn" title="显示/隐藏已过期特殊日期">往日</button>
-    <button class="fb-btn" id="sp-only-btn" title="仅展示特殊日期栏">完整</button>
-    <button class="fb-btn" id="weather-btn" title="设置天气城市">天气</button>
+    <button class="fb-btn" id="expired-toggle-btn" data-hide-key="expired" data-hide-label="往日" title="显示/隐藏已过期特殊日期">往日</button>
+    <button class="fb-btn" id="sp-border-btn" data-hide-key="spborder" data-hide-label="边框" title="显示/隐藏特殊日期卡片边框">边框</button>
+    <button class="fb-btn" id="sp-only-btn" data-hide-key="sponly" data-hide-label="完整" title="仅展示特殊日期栏">完整</button>
+    <button class="fb-btn" id="weather-btn" data-hide-key="weather" data-hide-label="天气" title="设置天气城市">天气</button>
     <div id="file-status"></div>
+    <div id="tb-hide-wrap">
+      <button class="fb-btn" id="tb-hide-btn" title="隐藏/显示工具按钮">⋯</button>
+      <div id="tb-hide-panel"></div>
+    </div>
   </div>
   <div id="weather-bar"></div>
 </div>
@@ -698,6 +909,7 @@
   let hideExpired  = (localStorage.getItem('sp-hide-expired')    ?? 'false') === 'true';
   let spOnlyMode   = (localStorage.getItem('sp-only-mode')      ?? 'false') === 'true';
   let weatherCity  = JSON.parse(localStorage.getItem('cal-weather-city') || 'null'); // {name, lat, lon}
+  let tbHidden     = JSON.parse(localStorage.getItem('cal-tb-hidden') || '{}');       // {key: true}
   let pendingDelete = null;
 
   function escHtml(s) {
@@ -772,6 +984,11 @@
         if (weatherCity) loadWeather();
         else document.getElementById('weather-bar')?.classList.remove('show');
       }
+      if (data.tbHidden !== undefined) {
+        tbHidden = data.tbHidden || {};
+        localStorage.setItem('cal-tb-hidden', JSON.stringify(tbHidden));
+        applyToolbarHidden();
+      }
       applyFontStyle();
       // 同步字体选择器高亮
       const fpPanel = document.getElementById('font-picker-panel');
@@ -800,7 +1017,7 @@
     const theme  = document.documentElement.getAttribute('data-theme') || 'ocean';
     const fontCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
     const fontEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
-    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN, hideExpired, spOnlyMode, weatherCity }, null, 2));
+    await writable.write(JSON.stringify({ notes, specials, theme, fontCN, fontEN, hideExpired, spOnlyMode, weatherCity, tbHidden }, null, 2));
     await writable.close();
   }
 
@@ -1100,8 +1317,10 @@
     initFontPicker();
     initExpiredToggle();
     initSpOnlyToggle();
+    initSpBorderToggle();
     initSpecialsBarGlow();
     initWeather();
+    initToolbarHide();
 
     // ════════════════════════════════════════
     //  文件系统访问 —— 异步恢复，不影响首次渲染
@@ -1921,6 +2140,85 @@
       update();
       renderSpecials();
       persistAll();
+    });
+  }
+
+  function applyToolbarHidden() {
+    document.querySelectorAll('#header [data-hide-key]').forEach(el => {
+      const key = el.getAttribute('data-hide-key');
+      el.classList.toggle('tb-hidden', !!tbHidden[key]);
+    });
+  }
+
+  function initToolbarHide() {
+    const btn   = document.getElementById('tb-hide-btn');
+    const panel = document.getElementById('tb-hide-panel');
+    if (!btn || !panel) return;
+
+    const items = Array.from(document.querySelectorAll('#header [data-hide-key]'))
+      .map(el => ({ key: el.getAttribute('data-hide-key'), label: el.getAttribute('data-hide-label') || el.getAttribute('data-hide-key') }));
+
+    panel.innerHTML =
+      '<div class="tb-hide-title">工具按钮显隐</div>' +
+      items.map(it =>
+        `<label class="tb-hide-row">` +
+          `<span class="tb-hide-label">${it.label}</span>` +
+          `<input type="checkbox" data-key="${it.key}" ${tbHidden[it.key] ? '' : 'checked'}>` +
+          `<span class="tb-hide-sw"></span>` +
+        `</label>`
+      ).join('');
+
+    applyToolbarHidden();
+
+    const positionPanel = () => {
+      const r = btn.getBoundingClientRect();
+      panel.style.top = (r.bottom + 6) + 'px';
+      const pw = panel.offsetWidth || 180;
+      let left = r.right - pw;
+      if (left < 8) left = 8;
+      panel.style.left = left + 'px';
+      panel.style.transform = '';
+    };
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const opening = !panel.classList.contains('open');
+      panel.classList.toggle('open', opening);
+      if (opening) positionPanel();
+    });
+
+    panel.addEventListener('click', e => e.stopPropagation());
+    panel.addEventListener('change', e => {
+      const cb = e.target;
+      if (!cb.matches('input[type=checkbox][data-key]')) return;
+      const key = cb.dataset.key;
+      // checked = 显示；unchecked = 隐藏
+      if (cb.checked) delete tbHidden[key]; else tbHidden[key] = true;
+      localStorage.setItem('cal-tb-hidden', JSON.stringify(tbHidden));
+      applyToolbarHidden();
+      if (typeof scheduleSave === 'function') scheduleSave();
+    });
+
+    document.addEventListener('click', () => panel.classList.remove('open'));
+    window.addEventListener('resize', () => panel.classList.contains('open') && positionPanel());
+  }
+
+  function initSpBorderToggle() {
+    const btn = document.getElementById('sp-border-btn');
+    if (!btn) return;
+    let on = localStorage.getItem('sp-card-border');
+    on = on === null ? true : on === 'true';
+    const apply = () => {
+      document.body.classList.toggle('sp-borders', on);
+      btn.classList.toggle('primary', on);
+      btn.title = on ? '隐藏特殊日期卡片边框' : '显示特殊日期卡片边框';
+    };
+    apply();
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      on = !on;
+      localStorage.setItem('sp-card-border', on);
+      apply();
     });
   }
 
