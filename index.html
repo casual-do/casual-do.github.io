@@ -794,40 +794,83 @@
       margin-bottom: 4px;
     }
     .tb-hide-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      display: flex; align-items: center; gap: 9px;
       font-size: 0.78rem; color: var(--c-text);
-      cursor: pointer; user-select: none;
-      padding: 6px 10px; border-radius: 6px;
+      user-select: none; padding: 6px 10px; border-radius: 6px;
       transition: background 0.12s;
     }
     .tb-hide-row:hover { background: color-mix(in srgb, var(--c-accent) 12%, transparent); }
-    .tb-hide-row input { display: none; }
-    .tb-hide-sw {                                       /* 迷你开关 */
-      width: 26px; height: 14px; border-radius: 8px; flex-shrink: 0;
-      background: color-mix(in srgb, var(--c-text) 22%, transparent);
-      position: relative; transition: background 0.18s;
+    .tb-visibility-control {
+      width: 20px; height: 18px; flex-shrink: 0;
+      display: grid; place-items: center; cursor: pointer; border-radius: 4px; position: relative;
     }
-    .tb-hide-sw::after {
+    .tb-visibility-control input {
+      position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;
+    }
+    .tb-eye {
+      width: 18px; height: 18px; display: block;
+      color: color-mix(in srgb, var(--c-text) 38%, transparent);
+      transition: color 0.15s, opacity 0.15s;
+    }
+    .tb-eye svg {
+      width: 100%; height: 100%; display: block; fill: none;
+      stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .tb-eye .tb-eye-slash { opacity: 1; stroke-width: 2.2; transition: opacity 0.15s; }
+    .tb-visibility-control input:checked + .tb-eye {
+      color: color-mix(in srgb, var(--c-text) 72%, transparent);
+    }
+    .tb-visibility-control input:checked + .tb-eye .tb-eye-slash { opacity: 0; }
+    .tb-visibility-control:hover .tb-eye { color: var(--c-accent); }
+    .tb-visibility-control input:focus-visible + .tb-eye {
+      outline: 2px solid var(--c-accent); outline-offset: 1px; border-radius: 4px;
+    }
+    .tb-hide-label { flex: 1; transition: opacity 0.15s; }
+    .tb-hide-row:has(.tb-visibility-control input:not(:checked)) .tb-hide-label { opacity: 0.45; }
+    .tb-setting-btn {
+      position: relative; width: 26px; height: 14px; padding: 0; flex-shrink: 0;
+      box-sizing: border-box; border-radius: 8px; cursor: pointer;
+      transition: color 0.16s, border-color 0.16s, background 0.16s, box-shadow 0.16s;
+    }
+    /* 直接设置：与显隐开关一致，用滑块位置表示当前状态 */
+    .tb-setting-btn:not(.has-submenu) {
+      border: none;
+      background: color-mix(in srgb, var(--c-text) 22%, transparent);
+    }
+    .tb-setting-btn:not(.has-submenu)::after {
       content: ''; position: absolute; top: 1px; left: 1px;
       width: 12px; height: 12px; border-radius: 50%; background: #fff;
       box-shadow: 0 1px 2px rgba(0,0,0,0.25);
       transition: transform 0.18s;
     }
-    .tb-hide-row input:checked ~ .tb-hide-sw { background: var(--c-accent); }
-    .tb-hide-row input:checked ~ .tb-hide-sw::after { transform: translateX(12px); }
-    .tb-hide-label { flex: 1; }
-    .tb-setting-btn {
-      min-width: 42px; height: 22px; padding: 0 7px; flex-shrink: 0;
-      border: 1px solid color-mix(in srgb, var(--c-specials-br) 85%, transparent);
-      border-radius: 5px; background: color-mix(in srgb, var(--c-card-bg) 74%, transparent);
-      color: color-mix(in srgb, var(--c-text) 76%, transparent);
-      font: inherit; font-size: 0.66rem; cursor: pointer;
-      transition: color 0.12s, border-color 0.12s, background 0.12s;
+    .tb-setting-btn:not(.has-submenu).is-on { background: var(--c-accent); }
+    .tb-setting-btn:not(.has-submenu).is-on::after { transform: translateX(12px); }
+    .tb-setting-btn:not(.has-submenu):hover {
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-accent) 28%, transparent);
     }
-    .tb-setting-btn:hover, .tb-setting-btn.active {
-      color: var(--c-accent); border-color: var(--c-accent);
-      background: color-mix(in srgb, var(--c-accent) 10%, transparent);
+    /* 后续界面入口：右箭头明确表示还可进入下一层 */
+    .tb-setting-btn.has-submenu {
+      border: 1px solid color-mix(in srgb, var(--c-text) 38%, transparent);
+      background: color-mix(in srgb, var(--c-text) 8%, transparent);
+      color: color-mix(in srgb, var(--c-text) 72%, transparent);
     }
+    .tb-setting-btn.has-submenu::before {
+      content: ''; position: absolute; left: 9px; top: 3px;
+      width: 5px; height: 5px;
+      border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor;
+      transform: rotate(45deg); transition: transform 0.16s;
+    }
+    .tb-setting-btn.has-submenu:hover,
+    .tb-setting-btn.has-submenu.active {
+      color: #fff; border-color: var(--c-accent); background: var(--c-accent);
+    }
+    .tb-setting-btn.has-submenu.active::before { transform: rotate(225deg); }
+    .tb-setting-btn:focus-visible {
+      outline: 2px solid var(--c-accent); outline-offset: 2px;
+    }
+    [data-theme="mono-inv"] .tb-setting-btn:not(.has-submenu)::after { background: #000; }
+    [data-theme="mono-inv"] .tb-setting-btn.has-submenu:hover,
+    [data-theme="mono-inv"] .tb-setting-btn.has-submenu.active { color: #000; }
     .tb-submenu {
       position: fixed; z-index: 320; display: none; flex-direction: column;
       max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); overflow: auto;
@@ -2265,25 +2308,40 @@
     const panel = document.getElementById('tb-hide-panel');
     if (!btn || !panel) return;
 
+    const itemOrder = ['theme', 'font', 'weather', 'expired', 'spborder', 'sponly'];
     const items = Array.from(document.querySelectorAll('#header [data-hide-key]'))
       .map(el => ({
         key: el.getAttribute('data-hide-key'),
         label: el.getAttribute('data-hide-label') || el.getAttribute('data-hide-key'),
         element: el
-      }));
+      }))
+      .sort((a, b) => itemOrder.indexOf(a.key) - itemOrder.indexOf(b.key));
     const submenuKeys = new Set(['theme', 'font']);
+    const nestedKeys = new Set(['theme', 'font', 'weather']);
+    const actionAttrs = item => {
+      const accessibleName = ` aria-label="设置${item.label}" title="设置${item.label}"`;
+      if (submenuKeys.has(item.key)) {
+        return ` aria-haspopup="true" aria-expanded="false" aria-controls="tb-${item.key}-submenu"${accessibleName}`;
+      }
+      if (item.key === 'weather') return ` aria-haspopup="dialog"${accessibleName}`;
+      return ` aria-pressed="false"${accessibleName}`;
+    };
 
     panel.innerHTML =
       '<div class="tb-hide-title">工具按钮显隐与设置</div>' +
       items.map(it =>
-        `<label class="tb-hide-row">` +
+        `<div class="tb-hide-row">` +
+          `<label class="tb-visibility-control" title="显示/隐藏${it.label}">` +
+            `<input type="checkbox" data-key="${it.key}" aria-label="在标题栏显示${it.label}" ${tbHidden[it.key] ? '' : 'checked'}>` +
+            `<span class="tb-eye" aria-hidden="true">` +
+              `<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path>` +
+              `<circle cx="12" cy="12" r="2.6"></circle><path class="tb-eye-slash" d="M4 4l16 16"></path></svg>` +
+            `</span>` +
+          `</label>` +
           `<span class="tb-hide-label">${it.label}</span>` +
-          `<input type="checkbox" data-key="${it.key}" ${tbHidden[it.key] ? '' : 'checked'}>` +
-          `<span class="tb-hide-sw"></span>` +
-          `<button type="button" class="tb-setting-btn" data-setting-key="${it.key}"` +
-            `${submenuKeys.has(it.key) ? ' aria-haspopup="true" aria-expanded="false"' : ''}` +
-            ` title="设置${it.label}">设置${submenuKeys.has(it.key) ? ' ›' : ''}</button>` +
-        `</label>`
+          `<button type="button" class="tb-setting-btn${nestedKeys.has(it.key) ? ' has-submenu' : ''}" data-setting-key="${it.key}"` +
+            `${actionAttrs(it)}></button>` +
+        `</div>`
       ).join('');
 
     function buildThemeSubmenu() {
@@ -2356,6 +2414,36 @@
     let activeSubmenu = null;
     let activeAnchor = null;
 
+    function syncSettingActions() {
+      const states = {
+        expired: {
+          on: !hideExpired,
+          description: hideExpired ? '往日已隐藏' : '往日已显示'
+        },
+        spborder: {
+          on: document.body.classList.contains('sp-borders'),
+          description: document.body.classList.contains('sp-borders') ? '边框已显示' : '边框已隐藏'
+        },
+        sponly: {
+          on: !spOnlyMode,
+          description: spOnlyMode ? '当前为简易模式' : '当前为完整日历'
+        }
+      };
+      Object.entries(states).forEach(([key, state]) => {
+        const action = panel.querySelector(`.tb-setting-btn[data-setting-key="${key}"]`);
+        if (!action) return;
+        action.classList.toggle('is-on', state.on);
+        action.setAttribute('aria-pressed', String(state.on));
+        action.setAttribute('aria-label', state.description);
+        action.title = state.description;
+      });
+    }
+
+    const settingStateObserver = new MutationObserver(syncSettingActions);
+    items.filter(item => !nestedKeys.has(item.key)).forEach(item => {
+      settingStateObserver.observe(item.element, { attributes: true, attributeFilter: ['class'] });
+    });
+
     function syncThemeSubmenu() {
       const current = document.documentElement.getAttribute('data-theme') || 'ocean';
       themeSubmenu.querySelectorAll('.tb-theme-opt').forEach(option =>
@@ -2391,7 +2479,7 @@
       [themeSubmenu, fontSubmenu].forEach(menu => menu.classList.remove('open'));
       panel.querySelectorAll('.tb-setting-btn').forEach(action => {
         action.classList.remove('active');
-        action.setAttribute('aria-expanded', 'false');
+        if (action.hasAttribute('aria-expanded')) action.setAttribute('aria-expanded', 'false');
       });
       activeSubmenu = null;
       activeAnchor = null;
@@ -2411,6 +2499,7 @@
     }
 
     applyToolbarHidden();
+    syncSettingActions();
 
     const positionPanel = () => {
       const r = btn.getBoundingClientRect();
@@ -2427,7 +2516,10 @@
       const opening = !panel.classList.contains('open');
       panel.classList.toggle('open', opening);
       closeSubmenus();
-      if (opening) positionPanel();
+      if (opening) {
+        syncSettingActions();
+        positionPanel();
+      }
     });
 
     panel.addEventListener('click', e => {
@@ -2450,6 +2542,7 @@
         clientX: r.left + r.width / 2,
         clientY: r.bottom
       }));
+      syncSettingActions();
     });
 
     panel.addEventListener('change', e => {
