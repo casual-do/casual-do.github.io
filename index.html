@@ -173,11 +173,36 @@
     [data-theme="mono"] .yr-btn { color: #fff; }
     [data-theme="mono"] .fb-btn { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.35); }
     [data-theme="mono"] .fb-btn.primary { background: #fff; color: #000; border-color: #fff; }
+    [data-theme="mono"] #header .fb-btn:hover {
+      background: #fff; color: #000; border-color: #fff; opacity: 1;
+      box-shadow: 0 0 0 1px #000, 0 0 0 2px #fff;
+    }
+    [data-theme="mono"] #header .yr-btn:hover {
+      background: #fff; color: #000; border-radius: 3px; opacity: 1;
+    }
     [data-theme="mono"] .sp-card { box-shadow: 2px 2px 0 #000; }
+    [data-theme="mono"] .sp-card:not(.sp-card-past):hover {
+      box-shadow: 0 0 0 2px #000, 0 0 14px 4px rgba(0,0,0,0.72);
+    }
     [data-theme="mono"] .sp-cnt-future,
     [data-theme="mono"] .sp-cnt-soon,
     [data-theme="mono"] .sp-cnt-today,
     [data-theme="mono"] .sp-cnt-past { background: #fff; color: #000; border: 1px solid #000; }
+    [data-theme="mono"] .sp-card.sp-card-past {
+      background: #000; border: 2px dashed #000;
+      box-shadow: inset 0 0 0 1px #fff, 3px 3px 0 #000;
+    }
+    [data-theme="mono"] .sp-card.sp-card-past:hover {
+      box-shadow: inset 0 0 0 1px #fff, 0 0 0 3px #000;
+    }
+    [data-theme="mono"] .sp-card.sp-card-past .sp-name {
+      color: #fff;
+    }
+    [data-theme="mono"] .sp-card.sp-card-past .sp-date,
+    [data-theme="mono"] .sp-card.sp-card-past .sp-del { color: #fff; }
+    [data-theme="mono"] .sp-card.sp-card-past .sp-cnt-past {
+      background: #fff; color: #000; border-color: #fff;
+    }
     [data-theme="mono"] .sp-date { color: #000; }
     [data-theme="mono"] .sp-today-mday,
     [data-theme="mono"] .sp-today-lunar { color: #000; }
@@ -214,11 +239,36 @@
     [data-theme="mono-inv"] .yr-btn { color: #000; }
     [data-theme="mono-inv"] .fb-btn { background: rgba(0,0,0,0.12); color: #000; border-color: rgba(0,0,0,0.35); }
     [data-theme="mono-inv"] .fb-btn.primary { background: #000; color: #fff; border-color: #000; }
+    [data-theme="mono-inv"] #header .fb-btn:hover {
+      background: #000; color: #fff; border-color: #000; opacity: 1;
+      box-shadow: 0 0 0 1px #fff, 0 0 0 2px #000;
+    }
+    [data-theme="mono-inv"] #header .yr-btn:hover {
+      background: #000; color: #fff; border-radius: 3px; opacity: 1;
+    }
     [data-theme="mono-inv"] .sp-card { box-shadow: 2px 2px 0 #fff; }
+    [data-theme="mono-inv"] .sp-card:not(.sp-card-past):hover {
+      box-shadow: 0 0 0 2px #fff, 0 0 14px 4px rgba(255,255,255,0.78);
+    }
     [data-theme="mono-inv"] .sp-cnt-future,
     [data-theme="mono-inv"] .sp-cnt-soon,
     [data-theme="mono-inv"] .sp-cnt-today,
     [data-theme="mono-inv"] .sp-cnt-past { background: #000; color: #fff; border: 1px solid #fff; }
+    [data-theme="mono-inv"] .sp-card.sp-card-past {
+      background: #fff; border: 2px dashed #fff;
+      box-shadow: inset 0 0 0 1px #000, 3px 3px 0 #fff;
+    }
+    [data-theme="mono-inv"] .sp-card.sp-card-past:hover {
+      box-shadow: inset 0 0 0 1px #000, 0 0 0 3px #fff;
+    }
+    [data-theme="mono-inv"] .sp-card.sp-card-past .sp-name {
+      color: #000;
+    }
+    [data-theme="mono-inv"] .sp-card.sp-card-past .sp-date,
+    [data-theme="mono-inv"] .sp-card.sp-card-past .sp-del { color: #000; }
+    [data-theme="mono-inv"] .sp-card.sp-card-past .sp-cnt-past {
+      background: #000; color: #fff; border-color: #000;
+    }
     [data-theme="mono-inv"] .sp-date { color: #fff; }
     [data-theme="mono-inv"] .sp-today-mday,
     [data-theme="mono-inv"] .sp-today-lunar { color: #fff; }
@@ -766,10 +816,70 @@
     .tb-hide-row input:checked ~ .tb-hide-sw { background: var(--c-accent); }
     .tb-hide-row input:checked ~ .tb-hide-sw::after { transform: translateX(12px); }
     .tb-hide-label { flex: 1; }
-    [data-theme="dark"]     #tb-hide-panel { background: rgba(24,27,36,0.92); }
-    [data-theme="mono"]     #tb-hide-panel { background: #fff; border-color: #000; }
-    [data-theme="mono-inv"] #tb-hide-panel { background: #000; border-color: #fff; }
-    [data-theme="mono-inv"] .tb-hide-title { color: #fff; }
+    .tb-setting-btn {
+      min-width: 42px; height: 22px; padding: 0 7px; flex-shrink: 0;
+      border: 1px solid color-mix(in srgb, var(--c-specials-br) 85%, transparent);
+      border-radius: 5px; background: color-mix(in srgb, var(--c-card-bg) 74%, transparent);
+      color: color-mix(in srgb, var(--c-text) 76%, transparent);
+      font: inherit; font-size: 0.66rem; cursor: pointer;
+      transition: color 0.12s, border-color 0.12s, background 0.12s;
+    }
+    .tb-setting-btn:hover, .tb-setting-btn.active {
+      color: var(--c-accent); border-color: var(--c-accent);
+      background: color-mix(in srgb, var(--c-accent) 10%, transparent);
+    }
+    .tb-submenu {
+      position: fixed; z-index: 320; display: none; flex-direction: column;
+      max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); overflow: auto;
+      padding: 8px; border: 1px solid color-mix(in srgb, var(--c-specials-br) 70%, transparent);
+      border-radius: 10px; color: var(--c-text);
+      background: color-mix(in srgb, var(--c-card-bg) 95%, transparent);
+      backdrop-filter: blur(24px) saturate(1.6);
+      -webkit-backdrop-filter: blur(24px) saturate(1.6);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .tb-submenu.open { display: flex; }
+    .tb-submenu-title {
+      padding: 3px 5px 7px; margin-bottom: 6px;
+      border-bottom: 1px solid color-mix(in srgb, var(--c-specials-br) 60%, transparent);
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;
+      color: color-mix(in srgb, var(--c-text) 62%, transparent);
+    }
+    #tb-theme-submenu { width: 276px; }
+    .tb-theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .tb-theme-opt {
+      display: flex; align-items: center; gap: 6px; padding: 5px 7px;
+      border: 1px solid transparent; border-radius: 6px; background: transparent;
+      color: var(--c-text); font: inherit; font-size: 0.7rem; cursor: pointer; text-align: left;
+    }
+    .tb-theme-opt:hover { background: color-mix(in srgb, var(--c-accent) 10%, transparent); }
+    .tb-theme-opt.active { border-color: var(--c-accent); color: var(--c-accent); }
+    .tb-theme-swatch {
+      width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
+      border: 1px solid color-mix(in srgb, var(--c-text) 30%, transparent);
+    }
+    #tb-font-submenu { width: min(580px, calc(100vw - 16px)); }
+    .tb-font-group { display: flex; align-items: flex-start; gap: 7px; }
+    .tb-font-group + .tb-font-group { margin-top: 7px; }
+    .tb-font-label {
+      width: 28px; padding-top: 5px; flex-shrink: 0; text-align: right;
+      font-size: 0.62rem; color: color-mix(in srgb, var(--c-text) 55%, transparent);
+    }
+    .tb-font-options { display: flex; flex: 1; flex-wrap: wrap; gap: 4px; }
+    .tb-font-opt {
+      padding: 3px 7px; border: 1px solid var(--c-specials-br); border-radius: 5px;
+      background: transparent; color: var(--c-text); font-size: 0.7rem; cursor: pointer;
+    }
+    .tb-font-opt:hover { border-color: var(--c-accent); color: var(--c-accent); }
+    .tb-font-opt.active { background: var(--c-accent); border-color: var(--c-accent); color: #fff; }
+    [data-theme="dark"]     #tb-hide-panel,
+    [data-theme="dark"]     .tb-submenu { background: rgba(24,27,36,0.94); }
+    [data-theme="mono"]     #tb-hide-panel,
+    [data-theme="mono"]     .tb-submenu { background: #fff; border-color: #000; }
+    [data-theme="mono-inv"] #tb-hide-panel,
+    [data-theme="mono-inv"] .tb-submenu { background: #000; border-color: #fff; }
+    [data-theme="mono-inv"] .tb-hide-title,
+    [data-theme="mono-inv"] .tb-submenu-title { color: #fff; }
     .tb-hidden { display: none !important; }
   </style>
 </head>
@@ -1470,7 +1580,7 @@
       if (hideExpired && !diffInfo.isFuture) continue;
 
       const card = document.createElement('div');
-      card.className = 'sp-card';
+      card.className = 'sp-card' + (diffInfo.isFuture ? '' : ' sp-card-past');
       card.style.cursor = 'pointer';
       card.addEventListener('click', e => {
         e.stopPropagation();
@@ -2156,24 +2266,156 @@
     if (!btn || !panel) return;
 
     const items = Array.from(document.querySelectorAll('#header [data-hide-key]'))
-      .map(el => ({ key: el.getAttribute('data-hide-key'), label: el.getAttribute('data-hide-label') || el.getAttribute('data-hide-key') }));
+      .map(el => ({
+        key: el.getAttribute('data-hide-key'),
+        label: el.getAttribute('data-hide-label') || el.getAttribute('data-hide-key'),
+        element: el
+      }));
+    const submenuKeys = new Set(['theme', 'font']);
 
     panel.innerHTML =
-      '<div class="tb-hide-title">工具按钮显隐</div>' +
+      '<div class="tb-hide-title">工具按钮显隐与设置</div>' +
       items.map(it =>
         `<label class="tb-hide-row">` +
           `<span class="tb-hide-label">${it.label}</span>` +
           `<input type="checkbox" data-key="${it.key}" ${tbHidden[it.key] ? '' : 'checked'}>` +
           `<span class="tb-hide-sw"></span>` +
+          `<button type="button" class="tb-setting-btn" data-setting-key="${it.key}"` +
+            `${submenuKeys.has(it.key) ? ' aria-haspopup="true" aria-expanded="false"' : ''}` +
+            ` title="设置${it.label}">设置${submenuKeys.has(it.key) ? ' ›' : ''}</button>` +
         `</label>`
       ).join('');
+
+    function buildThemeSubmenu() {
+      const menu = document.createElement('div');
+      menu.id = 'tb-theme-submenu';
+      menu.className = 'tb-submenu';
+      menu.innerHTML = '<div class="tb-submenu-title">主题设置</div>';
+      const grid = document.createElement('div');
+      grid.className = 'tb-theme-grid';
+      document.querySelectorAll('#theme-picker .t-dot').forEach(dot => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'tb-theme-opt';
+        option.dataset.theme = dot.dataset.theme;
+        option.innerHTML = '<span class="tb-theme-swatch"></span><span></span>';
+        option.querySelector('.tb-theme-swatch').style.background = dot.style.background;
+        option.querySelector('span:last-child').textContent = dot.title;
+        option.addEventListener('click', e => {
+          e.stopPropagation();
+          dot.dispatchEvent(new MouseEvent('click', { bubbles: false }));
+          syncThemeSubmenu();
+        });
+        grid.appendChild(option);
+      });
+      menu.appendChild(grid);
+      return menu;
+    }
+
+    function buildFontSubmenu() {
+      const menu = document.createElement('div');
+      menu.id = 'tb-font-submenu';
+      menu.className = 'tb-submenu';
+      menu.innerHTML = '<div class="tb-submenu-title">字体设置</div>';
+      [['中文', CN_FONTS], ['英数', EN_FONTS]].forEach(([type, fonts]) => {
+        const group = document.createElement('div');
+        group.className = 'tb-font-group';
+        const label = document.createElement('span');
+        label.className = 'tb-font-label';
+        label.textContent = type;
+        const options = document.createElement('div');
+        options.className = 'tb-font-options';
+        fonts.forEach(font => {
+          const option = document.createElement('button');
+          option.type = 'button';
+          option.className = 'tb-font-opt';
+          option.dataset.fontType = type;
+          option.dataset.fontLabel = font.label;
+          option.textContent = font.label;
+          option.style.fontFamily = `'${font.local}'`;
+          option.addEventListener('click', e => {
+            e.stopPropagation();
+            const sourceRow = Array.from(document.querySelectorAll('#font-picker-panel .fp-row'))
+              .find(row => row.querySelector('.fp-label')?.textContent === type);
+            const sourceOption = sourceRow && Array.from(sourceRow.querySelectorAll('.fp-opt'))
+              .find(opt => opt.textContent === font.label);
+            sourceOption?.dispatchEvent(new MouseEvent('click', { bubbles: false }));
+            syncFontSubmenu();
+          });
+          options.appendChild(option);
+        });
+        group.append(label, options);
+        menu.appendChild(group);
+      });
+      return menu;
+    }
+
+    const themeSubmenu = buildThemeSubmenu();
+    const fontSubmenu = buildFontSubmenu();
+    document.body.append(themeSubmenu, fontSubmenu);
+    let activeSubmenu = null;
+    let activeAnchor = null;
+
+    function syncThemeSubmenu() {
+      const current = document.documentElement.getAttribute('data-theme') || 'ocean';
+      themeSubmenu.querySelectorAll('.tb-theme-opt').forEach(option =>
+        option.classList.toggle('active', option.dataset.theme === current)
+      );
+    }
+
+    function syncFontSubmenu() {
+      const currentCN = localStorage.getItem('cal-font-cn') || '微软雅黑';
+      const currentEN = localStorage.getItem('cal-font-en') || 'hooge 05_55';
+      fontSubmenu.querySelectorAll('.tb-font-opt').forEach(option => {
+        const current = option.dataset.fontType === '中文' ? currentCN : currentEN;
+        option.classList.toggle('active', option.dataset.fontLabel === current);
+      });
+    }
+
+    function positionSubmenu(menu, anchor) {
+      menu.style.visibility = 'hidden';
+      menu.classList.add('open');
+      const anchorRect = anchor.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+      let left = anchorRect.left - menuRect.width - 8;
+      if (left < 8) left = anchorRect.right + 8;
+      if (left + menuRect.width > window.innerWidth - 8) left = Math.max(8, window.innerWidth - menuRect.width - 8);
+      let top = anchorRect.top - 8;
+      if (top + menuRect.height > window.innerHeight - 8) top = Math.max(8, window.innerHeight - menuRect.height - 8);
+      menu.style.left = left + 'px';
+      menu.style.top = top + 'px';
+      menu.style.visibility = '';
+    }
+
+    function closeSubmenus() {
+      [themeSubmenu, fontSubmenu].forEach(menu => menu.classList.remove('open'));
+      panel.querySelectorAll('.tb-setting-btn').forEach(action => {
+        action.classList.remove('active');
+        action.setAttribute('aria-expanded', 'false');
+      });
+      activeSubmenu = null;
+      activeAnchor = null;
+    }
+
+    function openSubmenu(key, anchor) {
+      const menu = key === 'theme' ? themeSubmenu : fontSubmenu;
+      if (activeSubmenu === menu) { closeSubmenus(); return; }
+      closeSubmenus();
+      document.getElementById('font-picker-panel')?.classList.remove('open');
+      if (key === 'theme') syncThemeSubmenu(); else syncFontSubmenu();
+      anchor.classList.add('active');
+      anchor.setAttribute('aria-expanded', 'true');
+      activeSubmenu = menu;
+      activeAnchor = anchor;
+      positionSubmenu(menu, anchor);
+    }
 
     applyToolbarHidden();
 
     const positionPanel = () => {
       const r = btn.getBoundingClientRect();
       panel.style.top = (r.bottom + 6) + 'px';
-      const pw = panel.offsetWidth || 180;
+      const pw = panel.offsetWidth || 220;
       let left = r.right - pw;
       if (left < 8) left = 8;
       panel.style.left = left + 'px';
@@ -2184,10 +2426,32 @@
       e.stopPropagation();
       const opening = !panel.classList.contains('open');
       panel.classList.toggle('open', opening);
+      closeSubmenus();
       if (opening) positionPanel();
     });
 
-    panel.addEventListener('click', e => e.stopPropagation());
+    panel.addEventListener('click', e => {
+      e.stopPropagation();
+      const action = e.target.closest('.tb-setting-btn[data-setting-key]');
+      if (!action) return;
+      e.preventDefault();
+      const key = action.dataset.settingKey;
+      if (submenuKeys.has(key)) {
+        openSubmenu(key, action);
+        return;
+      }
+      closeSubmenus();
+      const item = items.find(candidate => candidate.key === key);
+      const trigger = item?.element.matches('button') ? item.element : item?.element.querySelector('button');
+      if (!trigger) return;
+      const r = action.getBoundingClientRect();
+      trigger.dispatchEvent(new MouseEvent('click', {
+        bubbles: false,
+        clientX: r.left + r.width / 2,
+        clientY: r.bottom
+      }));
+    });
+
     panel.addEventListener('change', e => {
       const cb = e.target;
       if (!cb.matches('input[type=checkbox][data-key]')) return;
@@ -2199,8 +2463,15 @@
       if (typeof scheduleSave === 'function') scheduleSave();
     });
 
-    document.addEventListener('click', () => panel.classList.remove('open'));
-    window.addEventListener('resize', () => panel.classList.contains('open') && positionPanel());
+    [themeSubmenu, fontSubmenu].forEach(menu => menu.addEventListener('click', e => e.stopPropagation()));
+    document.addEventListener('click', () => {
+      panel.classList.remove('open');
+      closeSubmenus();
+    });
+    window.addEventListener('resize', () => {
+      if (panel.classList.contains('open')) positionPanel();
+      if (activeSubmenu && activeAnchor) positionSubmenu(activeSubmenu, activeAnchor);
+    });
   }
 
   function initSpBorderToggle() {
