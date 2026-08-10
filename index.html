@@ -2138,6 +2138,14 @@
   // ════════════════════════════════════════
   let lastScrollY = 0;
 
+  function updateBackTopBtn() {
+    const backBtn = document.getElementById('back-top-btn');
+    const sticky  = document.getElementById('sticky-top');
+    if (!backBtn || !sticky) return;
+    const stickyRect = sticky.getBoundingClientRect();
+    backBtn.classList.toggle('show', stickyRect.bottom <= 0);
+  }
+
   window.addEventListener('scroll', () => {
     const y        = window.scrollY;
     const sticky   = document.getElementById('sticky-top');
@@ -2148,13 +2156,7 @@
       sticky.style.top = '0';
     }
 
-    // 顶部栏被隐藏（top 为负值）或已滚出视口时，显示回到顶部按钮
-    const backBtn = document.getElementById('back-top-btn');
-    if (backBtn) {
-      const stickyRect = sticky.getBoundingClientRect();
-      const hidden = stickyRect.bottom <= 0;
-      backBtn.classList.toggle('show', hidden);
-    }
+    updateBackTopBtn();
 
     lastScrollY = y;
   }, { passive: true });
@@ -2162,6 +2164,8 @@
   document.getElementById('back-top-btn')?.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+  window.addEventListener('load', updateBackTopBtn);
+  window.addEventListener('resize', updateBackTopBtn);
 
   // ════════════════════════════════════════
   //  滚动到今日（位置百分比：0~1，直觉式控制）
@@ -2334,6 +2338,10 @@
     document.querySelectorAll('#header [data-hide-key]').forEach(el => {
       const key = el.getAttribute('data-hide-key');
       el.classList.toggle('tb-hidden', !!tbHidden[key]);
+    });
+    // 同步面板内的开关状态（避免加载文件后状态漂移）
+    document.querySelectorAll('#tb-hide-panel input[data-key]').forEach(cb => {
+      cb.checked = !tbHidden[cb.dataset.key];
     });
   }
 
