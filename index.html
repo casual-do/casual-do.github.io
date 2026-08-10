@@ -2140,10 +2140,9 @@
 
   function updateBackTopBtn() {
     const backBtn = document.getElementById('back-top-btn');
-    const sticky  = document.getElementById('sticky-top');
-    if (!backBtn || !sticky) return;
-    const stickyRect = sticky.getBoundingClientRect();
-    backBtn.classList.toggle('show', stickyRect.bottom <= 0);
+    const header  = document.getElementById('header');
+    if (!backBtn || !header) return;
+    backBtn.classList.toggle('show', window.scrollY > header.offsetHeight);
   }
 
   window.addEventListener('scroll', () => {
