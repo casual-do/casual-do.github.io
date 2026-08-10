@@ -924,6 +924,25 @@
     [data-theme="mono-inv"] .tb-hide-title,
     [data-theme="mono-inv"] .tb-submenu-title { color: #fff; }
     .tb-hidden { display: none !important; }
+    /* ── 返回顶部按钮 ── */
+    #back-top-btn {
+      position: fixed; right: 18px; bottom: 22px; z-index: 400;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: color-mix(in srgb, var(--c-accent) 88%, transparent);
+      color: #fff; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.12);
+      opacity: 0; pointer-events: none; transform: translateY(8px) scale(0.9);
+      transition: opacity 0.22s, transform 0.22s, background 0.15s;
+    }
+    #back-top-btn.show { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+    #back-top-btn:hover { background: var(--c-accent-dk); }
+    #back-top-btn svg { width: 18px; height: 18px; }
+    [data-theme="mono"]     #back-top-btn { background: #000; color: #fff; }
+    [data-theme="mono-inv"] #back-top-btn { background: #fff; color: #000; border: 1px solid #000; }
+    @media (max-width: 600px) {
+      #back-top-btn { right: 12px; bottom: 14px; width: 36px; height: 36px; }
+    }
   </style>
 </head>
 <body>
@@ -968,6 +987,9 @@
 </div>
 <div id="specials-wrap"><div id="specials-bar"></div></div>
 <div id="calendar"></div>
+<button id="back-top-btn" title="回到顶部" aria-label="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+</button>
 
 <script>
   // ════════════════════════════════════════
@@ -2126,8 +2148,20 @@
       sticky.style.top = '0';
     }
 
+    // 顶部栏被隐藏（top 为负值）或已滚出视口时，显示回到顶部按钮
+    const backBtn = document.getElementById('back-top-btn');
+    if (backBtn) {
+      const stickyRect = sticky.getBoundingClientRect();
+      const hidden = stickyRect.bottom <= 0;
+      backBtn.classList.toggle('show', hidden);
+    }
+
     lastScrollY = y;
   }, { passive: true });
+
+  document.getElementById('back-top-btn')?.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 
   // ════════════════════════════════════════
   //  滚动到今日（位置百分比：0~1，直觉式控制）
